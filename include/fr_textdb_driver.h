@@ -111,10 +111,10 @@ struct gr_neighs_t {
 };
 
 int read_gfu(const char *fileName, FileReader *fd, Graph *graph) {
-    TIMEHANDLE time_s;
-    double time_e;
+    //TIMEHANDLE time_s;
+    //double time_e;
 
-    time_s = start_time();
+    //time_s = start_time();
     char str[STR_READ_LENGTH];
     int i, j;
 
@@ -175,9 +175,9 @@ int read_gfu(const char *fileName, FileReader *fd, Graph *graph) {
             ns_o[et] = n;
         }
     }
-    time_e = end_time(time_s);
-    std::cout << ":rtime: from file " << time_e << "\n";
-    time_s = start_time();
+    //time_e = end_time(time_s);
+    //std::cout << ":rtime: from file " << time_e << "\n";
+    //time_s = start_time();
 
     graph->out_adj_list = (int **)malloc(graph->nof_nodes * sizeof(int *));
     graph->in_adj_list = (int **)malloc(graph->nof_nodes * sizeof(int *));
@@ -205,9 +205,9 @@ int read_gfu(const char *fileName, FileReader *fd, Graph *graph) {
         }
     }
 
-    time_e = end_time(time_s);
-    std::cout << ":rtime: data structures " << time_e << "\n";
-    time_s = start_time();
+    //time_e = end_time(time_s);
+    //std::cout << ":rtime: data structures " << time_e << "\n";
+    //time_s = start_time();
 
     for (int i = 0; i < graph->nof_nodes; i++) {
         if (ns_o[i] != NULL) {
@@ -237,8 +237,8 @@ int read_gfu(const char *fileName, FileReader *fd, Graph *graph) {
         }
     }
 
-    time_e = end_time(time_s);
-    std::cout << ":rtime: free " << time_e << "\n";
+    //time_e = end_time(time_s);
+    //std::cout << ":rtime: free " << time_e << "\n";
 
     return 0;
 };

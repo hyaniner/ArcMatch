@@ -45,6 +45,7 @@ RE|NRE  (reduce or not edge domains)				REDUCE_EDGES is on for RE
 */
 
 
+
 //#define MDEBUG
 
 //#define PRINT_MATCHES
@@ -53,13 +54,15 @@ RE|NRE  (reduce or not edge domains)				REDUCE_EDGES is on for RE
 //#define FIRST_MATCH_ONLY  //if setted, the searching process stops at the first found match
 //#define FIRST_100k_MATCHES //stop at the first 100k matches
 
-//#define NODE_D_CONV	//refine node domains until convergence
+//t12="-DNODE_D_CONV -DREDUCE_EDGES -DPATH_LENGTH=6 -DMAMA_1 -DSOLVER_0"
+
+#define NODE_D_CONV	//refine node domains until convergence
 //#define EDGE_D_CONV	//refine edge domains until convergence
 
-//#define REDUCE_EDGES
+#define REDUCE_EDGES
 
 
-//#define MAMA_1 //original order
+#define MAMA_1 //original order
 //#define MAMA_0 //simple matching machine with edge weigths set to 1
 //#define MAMA_FC //mama by centrality flooding
 //#define MAMA_AC //matching machine with angular coefficient
@@ -67,12 +70,12 @@ RE|NRE  (reduce or not edge domains)				REDUCE_EDGES is on for RE
 //#define MAMA_NSL //the real original order with node sets for flags, with disjoint leafs at the end of the ordering
 //#define MAMA_CC //ordering by taking into account core compatibility
 
-//#define SOLVER_0 //simple solver with edge domains
+#define SOLVER_0 //simple solver with edge domains
 //#define SOLVER_ED //simple solver which exploits edge domains
 //#define SOLVER_DP //solver with dynamic parent selection
 //#define SOLVER_LF //solver with dynamic parent selection and leafs
 
-//#define PATH_LENGTH 6
+#define PATH_LENGTH 6
 //#define PATH_LENGTH 9
 
 
@@ -225,11 +228,11 @@ int match(
 		std::string& 	queryfile){
 	bool doBijIso = (matchtype == MT_ISO);
 
-	TIMEHANDLE load_s, load_s_q, make_mama_s, match_s, total_s, s_tmp;
+	//TIMEHANDLE load_s, load_s_q, make_mama_s, match_s, total_s, s_tmp;
 	double load_t=0;double load_t_q=0; double make_mama_t=0; double match_t=0; double total_t=0; double t_tmp;
 
 
-	total_s=start_time();
+	//total_s=start_time();
 
 	int rret;
 
@@ -257,7 +260,7 @@ int match(
 	}
 
 
-	TIMEHANDLE tt_start;
+	//TIMEHANDLE tt_start;
 	double tt_end;
 
 #ifdef MDEBUG
@@ -265,10 +268,10 @@ int match(
 #endif
 
 	//read the query
-	load_s_q=start_time();
+	//load_s_q=start_time();
 	Graph *query = new Graph();
 	rret = read_graph(queryfile.c_str(), query, filetype);
-	load_t_q+=end_time(load_s_q);
+	//load_t_q+=end_time(load_s_q);
 	if(rret !=0){
 		std::cout<<"error on reading query graph\n";
 	}
@@ -278,7 +281,7 @@ int match(
 #endif
 
 	//delete dquery;
-	load_t_q+=end_time(load_s_q);
+	//load_t_q+=end_time(load_s_q);
 
 	long 	steps = 0,				//total number of steps of the backtracking phase
 			triedcouples = 0, 		//nof tried pair (query node, reference node)
@@ -299,7 +302,7 @@ int match(
 		int i=0;
 		bool rreaded = true;
 		do{	//for each reference graph in the file
-			load_s=start_time();
+			//load_s=start_time();
 			Graph * rrg = new Graph();
 			//read the graph
 #ifdef MDEBUG
@@ -308,7 +311,7 @@ int match(
 			int rret = read_dbgraph(referencefile.c_str(), fd, rrg, filetype);
 			//rreaded = fd->is_valid();
 			rreaded = true;
-			load_t+=end_time(load_s);
+			//load_t+=end_time(load_s);
 
 
 			if(rreaded){
@@ -318,37 +321,37 @@ int match(
 
 					//initialize domains
 					sbitset *domains = new sbitset[query->nof_nodes];
-					match_s=start_time();
+					//match_s=start_time();
 
 					std::cout<<"initializing domain...\n";
 
-					s_tmp = start_time();
+					//s_tmp = start_time();
 					bool domok = init_domains(*rrg, *query, *nodeComparator, *edgeComparator, domains, doBijIso);
-					t_tmp = end_time(s_tmp);
-					std::cout<<":time: init domains "<<t_tmp<<"\n";
+					//t_tmp = end_time(s_tmp);
+					//std::cout<<":time: init domains "<<t_tmp<<"\n";
 
-					match_t+=end_time(match_s);
+					//match_t+=end_time(match_s);
 
 					//if domain constraints are satisfied (at least one compatible target node for each query node)
 					if(domok){
-						std:cout<<"domain ok\n";
+						std::cout<<"domain ok\n";
 						std::cout<<"initializing edge domain...\n";
 
-						match_s=start_time();
+						//match_s=start_time();
 
 						EdgeDomains edomains;
 						std::cout<<"edomain init\n";
 
-						s_tmp = start_time();
+						//s_tmp = start_time();
 						init_edomains(*rrg, *query, domains, *edgeComparator, edomains);
-						t_tmp = end_time(s_tmp);
-						std::cout<<":time: init edomains "<<t_tmp<<"\n";
+						//t_tmp = end_time(s_tmp);
+						//std::cout<<":time: init edomains "<<t_tmp<<"\n";
 
 #ifdef MDEBUG
 						print_domains(*query, *rrg, domains,edomains);
 #endif
 
-						s_tmp = start_time();
+						//s_tmp = start_time();
 
 #ifdef REDUCE_EDGES
 						DomainReduction dr(*query, domains, edomains, rrg->nof_nodes);
@@ -360,16 +363,16 @@ int match(
 						std::cout<<"edomain done\n";
 #endif
 
-						t_tmp = end_time(s_tmp);
-						std::cout<<":time: reduce edomains "<<t_tmp<<"\n";
+						//t_tmp = end_time(s_tmp);
+						//std::cout<<":time: reduce edomains "<<t_tmp<<"\n";
 
-						match_t+=end_time(match_s);
+						//match_t+=end_time(match_s);
 
 #ifdef MDEBUG
 						print_domains(*query, *rrg, domains,edomains);
 #endif
 
-						std::cout<<"building matching machine...\n";
+						//std::cout<<"building matching machine...\n";
 
 						//just get the domain size for each query node
 						int *domains_size = new int[query->nof_nodes];
@@ -393,7 +396,7 @@ int match(
 
 
 						//build the static matching machine
-						make_mama_s=start_time();
+						//make_mama_s=start_time();
 						
 						//MatchingMachine* mama = new MaMaConstrFirstDs(*query, domains, domains_size);
 						#ifdef MAMA_1
@@ -429,10 +432,10 @@ int match(
 						mama->build(*query);
 						//std::cout<<"fix edis mm\n";
 						mama->fix_eids(*query);
-						make_mama_t+=end_time(make_mama_s);
+						//make_mama_t+=end_time(make_mama_s);
 						//std::cout<<"done\n";
 
-						t_tmp = end_time(make_mama_s);
+						//t_tmp = end_time(make_mama_s);
 						std::cout<<":time: make mama "<<t_tmp<<"\n";
 
 						std::cout<<"ordering: ";
@@ -477,7 +480,7 @@ int match(
 						//std::cout<<"solving...\n";
 
 
-						s_tmp = start_time();
+						//s_tmp = start_time();
 
 						
 						#ifdef SOLVER_0
@@ -497,14 +500,14 @@ int match(
 						#endif
 
 
-						t_tmp = end_time(s_tmp);
-						std::cout<<":time: solve "<<t_tmp<<"\n";
+						//t_tmp = end_time(s_tmp);
+						//std::cout<<":time: solve "<<t_tmp<<"\n";
 
 
 
 						//std::cout<<"done\n";
 
-						match_t+=end_time(match_s);
+						//match_t+=end_time(match_s);
 
 						steps += solver->steps;
 						triedcouples += solver->triedcouples;
@@ -544,7 +547,7 @@ int match(
 		return -1;
 	}
 
-	total_t=end_time(total_s);
+	//total_t=end_time(total_s);
 
 #ifdef CSV_FORMAT
 	std::cout<<referencefile<<"\t"<<queryfile<<"\t";
