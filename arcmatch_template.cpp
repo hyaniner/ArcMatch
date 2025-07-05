@@ -23,7 +23,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
+#include "PreprocessorControl.h"
 
 /*
 Nomenclature
@@ -56,13 +56,13 @@ RE|NRE  (reduce or not edge domains)				REDUCE_EDGES is on for RE
 
 //t12="-DNODE_D_CONV -DREDUCE_EDGES -DPATH_LENGTH=6 -DMAMA_1 -DSOLVER_0"
 
-#define NODE_D_CONV	//refine node domains until convergence
+//#define NODE_D_CONV	//refine node domains until convergence
 //#define EDGE_D_CONV	//refine edge domains until convergence
 
-#define REDUCE_EDGES
+//#define REDUCE_EDGES
 
 
-#define MAMA_1 //original order
+//#define MAMA_1 //original order
 //#define MAMA_0 //simple matching machine with edge weigths set to 1
 //#define MAMA_FC //mama by centrality flooding
 //#define MAMA_AC //matching machine with angular coefficient
@@ -70,12 +70,12 @@ RE|NRE  (reduce or not edge domains)				REDUCE_EDGES is on for RE
 //#define MAMA_NSL //the real original order with node sets for flags, with disjoint leafs at the end of the ordering
 //#define MAMA_CC //ordering by taking into account core compatibility
 
-#define SOLVER_0 //simple solver with edge domains
+//#define SOLVER_0 //simple solver with edge domains
 //#define SOLVER_ED //simple solver which exploits edge domains
 //#define SOLVER_DP //solver with dynamic parent selection
 //#define SOLVER_LF //solver with dynamic parent selection and leafs
 
-#define PATH_LENGTH 6
+//#define PATH_LENGTH 6
 //#define PATH_LENGTH 9
 
 
