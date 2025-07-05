@@ -2,7 +2,7 @@
 
 
 #ifndef ARC_MATCH_CONTROL
-    # define ARC_MATCH_CONTROL 14
+    # define ARC_MATCH_CONTROL 7
 
     #if ARC_MATCH_CONTROL == 1
     	#define MAMA_1
