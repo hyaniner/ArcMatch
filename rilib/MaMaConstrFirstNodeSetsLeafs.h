@@ -40,31 +40,37 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "sbitset.h"
 #include <set>
 
-namespace rilib {
-
-class MaMaConstrFirstNodeSetsLeafs : public MatchingMachine {
+namespace rilib
+{
+class FAmMaMaConstrFirstNodeSetsLeafs : public FAmMatchingMachine
+{
     enum NodeFlag { NS_CORE, NS_CNEIGH, NS_UNV };
 
-    sbitset *domains;
-    int *domains_size;
+    FAmsbitset* domains;
+    int* domains_size;
 
-  public:
-    MaMaConstrFirstNodeSetsLeafs(Graph &query, sbitset *_domains, int *_domains_size) : MatchingMachine(query), domains(_domains), domains_size(_domains_size) {}
+public:
+    FAmMaMaConstrFirstNodeSetsLeafs(FAmGraph& query, FAmsbitset* _domains, int* _domains_size)
+        : FAmMatchingMachine(query)
+        , domains(_domains)
+        , domains_size(_domains_size)
+    {
+    }
 
-    virtual void build(Graph &ssg) {
+    virtual void build(FAmGraph& ssg)
+    {
 
-#ifdef MAMACONSTRFIRSTNODESETSLEAFS_H_MDEBUG
-        ssg.print();
-#endif
-
-        NodeFlag *node_flags = new NodeFlag[nof_sn]; // indexed by node_id
-        for (int i = 0; i < nof_sn; i++) {
+        NodeFlag* node_flags = new NodeFlag[nof_sn]; // indexed by node_id
+        for (int i = 0; i < nof_sn; i++)
+        {
             node_flags[i] = NS_UNV;
         }
 
         int si = 0;
-        for (int i = 0; i < nof_sn; i++) {
-            if (domains_size[i] == 1) {
+        for (int i = 0; i < nof_sn; i++)
+        {
+            if (domains_size[i] == 1)
+            {
 #ifdef MAMACONSTRFIRSTNODESETSLEAFS_H_MDEBUG
                 std::cout << "ssi[" << si << "] = " << i << "\n";
 #endif
@@ -73,23 +79,28 @@ class MaMaConstrFirstNodeSetsLeafs : public MatchingMachine {
             }
         }
 
-        bool *good_leafs = new bool[nof_sn];
-        bool *bad_leafs = new bool[nof_sn];
-        for (int i = 0; i < nof_sn; i++) {
+        bool* good_leafs = new bool[nof_sn];
+        bool* bad_leafs = new bool[nof_sn];
+        for (int i = 0; i < nof_sn; i++)
+        {
             good_leafs[i] = false;
             bad_leafs[i] = false;
-            if (node_flags[i] != NS_CORE) {
+            if (node_flags[i] != NS_CORE)
+            {
                 std::set<int> neighs;
-                for (int j = 0; j < ssg.out_adj_sizes[i]; j++) {
-                    neighs.insert(ssg.out_adj_list[i][j]);
+                for (int j = 0; j < ssg.OutAdjSizes[i]; j++)
+                {
+                    neighs.insert(ssg.OutAdjList[i][j]);
                 }
-                for (int j = 0; j < ssg.in_adj_sizes[i]; j++) {
-                    neighs.insert(ssg.in_adj_list[i][j]);
+                for (int j = 0; j < ssg.InAdjSizes[i]; j++)
+                {
+                    neighs.insert(ssg.InAdjList[i][j]);
                 }
 #ifdef MAMACONSTRFIRSTNODESETSLEAFS_H_MDEBUG
                 std::cout << i << " nof neighs " << neighs.size() << "\n";
 #endif
-                if (neighs.size() == 1) {
+                if (neighs.size() == 1)
+                {
                     good_leafs[i] = true;
                 }
             }
@@ -97,27 +108,38 @@ class MaMaConstrFirstNodeSetsLeafs : public MatchingMachine {
 
 #ifdef MAMACONSTRFIRSTNODESETSLEAFS_H_MDEBUG
         std::cout << "preliminary leafs: ";
-        for (int i = 0; i < nof_sn; i++) {
-            if (good_leafs[i]) {
+        for (int i = 0; i < nof_sn; i++)
+        {
+            if (good_leafs[i])
+            {
                 std::cout << i << " ";
             }
         }
         std::cout << "\n";
 #endif
-        for (int i = 0; i < nof_sn; i++) {
-            if (good_leafs[i] && (!bad_leafs[i])) {
-                for (int j = 0; j < nof_sn; j++) {
-                    if (i != j) {
-                        if (good_leafs[j] && (!bad_leafs[j])) {
-                            if (!domains[i].emptyAND(domains[j])) {
+        for (int i = 0; i < nof_sn; i++)
+        {
+            if (good_leafs[i] && (!bad_leafs[i]))
+            {
+                for (int j = 0; j < nof_sn; j++)
+                {
+                    if (i != j)
+                    {
+                        if (good_leafs[j] && (!bad_leafs[j]))
+                        {
+                            if (!domains[i].emptyAND(domains[j]))
+                            {
 
-                                if (domains_size[j] >= domains_size[i]) {
+                                if (domains_size[j] >= domains_size[i])
+                                {
                                     // bad_leafs[i] = true;
                                     bad_leafs[j] = true;
 #ifdef MAMACONSTRFIRSTNODESETSLEAFS_H_MDEBUG
                                     std::cout << "remove leaf " << j << " by " << i << " \n";
 #endif
-                                } else {
+                                }
+                                else
+                                {
                                     bad_leafs[i] = true;
 #ifdef MAMACONSTRFIRSTNODESETSLEAFS_H_MDEBUG
                                     std::cout << "remove leaf " << i << " by " << j << " \n";
@@ -134,8 +156,10 @@ class MaMaConstrFirstNodeSetsLeafs : public MatchingMachine {
         int leafi = nof_sn - 1;
         nof_leafs = 0;
 
-        for (int i = 0; i < nof_sn; i++) {
-            if (good_leafs[i] && (!bad_leafs[i])) {
+        for (int i = 0; i < nof_sn; i++)
+        {
+            if (good_leafs[i] && (!bad_leafs[i]))
+            {
 #ifdef MAMACONSTRFIRSTNODESETSLEAFS_H_MDEBUG
                 std::cout << "leaf vertex " << i << " at " << leafi << "\n";
 #endif
@@ -143,7 +167,9 @@ class MaMaConstrFirstNodeSetsLeafs : public MatchingMachine {
                 map_node_to_state[i] = leafi;
                 leafi--;
                 nof_leafs++;
-            } else {
+            }
+            else
+            {
                 good_leafs[i] = false;
             }
         }
@@ -152,13 +178,15 @@ class MaMaConstrFirstNodeSetsLeafs : public MatchingMachine {
 #endif
 
 #ifdef MAMACONSTRFIRSTNODESETSLEAFS_H_MDEBUG
-        for (int i = 0; i < nof_sn; i++) {
+        for (int i = 0; i < nof_sn; i++)
+        {
             std::cout << i << "[" << node_flags[i] << "] ";
         }
         std::cout << "\n";
 #endif
 
-        for (; si < leafi + 1; si++) {
+        for (; si < leafi + 1; si++)
+        {
 
 #ifdef MAMACONSTRFIRSTNODESETSLEAFS_H_MDEBUG
             std::cout << "SI[" << si << "]\n";
@@ -168,27 +196,36 @@ class MaMaConstrFirstNodeSetsLeafs : public MatchingMachine {
             int current_nid_score[] = {0, 0, 0, 0, 0};
 
 #ifdef MAMACONSTRFIRSTNODESETSLEAFS_H_MDEBUG
-            for (int nid = 0; nid < nof_sn; nid++) {
+            for (int nid = 0; nid < nof_sn; nid++)
+            {
                 std::cout << nid << "(" << node_flags[nid] << ") ";
                 get_scores(nid, current_nid_score, node_flags, ssg);
                 std::cout << "[";
-                for (int i = 0; i < 5; i++) {
+                for (int i = 0; i < 5; i++)
+                {
                     std::cout << current_nid_score[i] << " ";
                 }
                 std::cout << "]\n";
             }
 #endif
 
-            for (int nid = 0; nid < nof_sn; nid++) {
-                if ((node_flags[nid] == NS_CNEIGH) && (!good_leafs[nid])) {
-                    if (best_nid == -1) {
+            for (int nid = 0; nid < nof_sn; nid++)
+            {
+                if ((node_flags[nid] == NS_CNEIGH) && (!good_leafs[nid]))
+                {
+                    if (best_nid == -1)
+                    {
                         best_nid = nid;
                         get_scores(nid, best_nid_score, node_flags, ssg);
-                    } else {
+                    }
+                    else
+                    {
                         get_scores(nid, current_nid_score, node_flags, ssg);
-                        if (compare_scores(current_nid_score, best_nid_score, nid, best_nid) > 0) {
+                        if (compare_scores(current_nid_score, best_nid_score, nid, best_nid) > 0)
+                        {
                             best_nid = nid;
-                            for (int i = 0; i < 5; i++) {
+                            for (int i = 0; i < 5; i++)
+                            {
                                 best_nid_score[i] = current_nid_score[i];
                             }
                         }
@@ -196,17 +233,26 @@ class MaMaConstrFirstNodeSetsLeafs : public MatchingMachine {
                 }
             }
 
-            if (best_nid == -1) { // firs node without singletons or disconnected query
-                for (int nid = 0; nid < nof_sn; nid++) {
-                    if ((node_flags[nid] == NS_UNV) && (!good_leafs[nid])) {
-                        if (best_nid == -1) {
+            if (best_nid == -1)
+            {
+                // firs node without singletons or disconnected query
+                for (int nid = 0; nid < nof_sn; nid++)
+                {
+                    if ((node_flags[nid] == NS_UNV) && (!good_leafs[nid]))
+                    {
+                        if (best_nid == -1)
+                        {
                             best_nid = nid;
                             get_scores(nid, best_nid_score, node_flags, ssg);
-                        } else {
+                        }
+                        else
+                        {
                             get_scores(nid, current_nid_score, node_flags, ssg);
-                            if (compare_scores(current_nid_score, best_nid_score, nid, best_nid) > 0) {
+                            if (compare_scores(current_nid_score, best_nid_score, nid, best_nid) > 0)
+                            {
                                 best_nid = nid;
-                                for (int i = 0; i < 5; i++) {
+                                for (int i = 0; i < 5; i++)
+                                {
                                     best_nid_score[i] = current_nid_score[i];
                                 }
                             }
@@ -220,7 +266,8 @@ class MaMaConstrFirstNodeSetsLeafs : public MatchingMachine {
             push_node_to_core(best_nid, si, node_flags, ssg, map_state_to_node, map_node_to_state);
 
 #ifdef MAMACONSTRFIRSTNODESETSLEAFS_H_MDEBUG
-            for (int i = 0; i < nof_sn; i++) {
+            for (int i = 0; i < nof_sn; i++)
+            {
                 std::cout << i << "[" << node_flags[i] << "] ";
             }
             std::cout << "\n";
@@ -229,32 +276,39 @@ class MaMaConstrFirstNodeSetsLeafs : public MatchingMachine {
 
 #ifdef MAMACONSTRFIRSTNODESETSLEAFS_H_MDEBUG
         std::cout << "node to state: ";
-        for (int i = 0; i < nof_sn; i++) {
+        for (int i = 0; i < nof_sn; i++)
+        {
             std::cout << i << "[" << map_node_to_state[i] << "] ";
         }
         std::cout << "\n";
         std::cout << "state to node: ";
-        for (int i = 0; i < nof_sn; i++) {
+        for (int i = 0; i < nof_sn; i++)
+        {
             std::cout << i << "[" << map_state_to_node[i] << "] ";
         }
         std::cout << "\n";
 #endif
 
         int e_count, o_e_count, i_e_count, n, nn;
-        for (int si = 0; si < nof_sn; si++) {
+        for (int si = 0; si < nof_sn; si++)
+        {
 
             n = map_state_to_node[si];
             e_count = 0;
             o_e_count = 0;
-            for (int i = 0; i < ssg.out_adj_sizes[n]; i++) {
-                if (map_node_to_state[ssg.out_adj_list[n][i]] < si) {
+            for (int i = 0; i < ssg.OutAdjSizes[n]; i++)
+            {
+                if (map_node_to_state[ssg.OutAdjList[n][i]] < si)
+                {
                     e_count++;
                     o_e_count++;
                 }
             }
             i_e_count = 0;
-            for (int i = 0; i < ssg.in_adj_sizes[n]; i++) {
-                if (map_node_to_state[ssg.in_adj_list[n][i]] < si) {
+            for (int i = 0; i < ssg.InAdjSizes[n]; i++)
+            {
+                if (map_node_to_state[ssg.InAdjList[n][i]] < si)
+                {
                     e_count++;
                     i_e_count++;
                 }
@@ -270,21 +324,26 @@ class MaMaConstrFirstNodeSetsLeafs : public MatchingMachine {
 
             edges[si] = new MaMaEdge[e_count];
 
-            if (e_count > 0) {
+            if (e_count > 0)
+            {
 
                 e_count = 0;
 
-                for (int i = 0; i < ssg.out_adj_sizes[n]; i++) {
-                    if (map_node_to_state[ssg.out_adj_list[n][i]] < si) {
+                for (int i = 0; i < ssg.OutAdjSizes[n]; i++)
+                {
+                    if (map_node_to_state[ssg.OutAdjList[n][i]] < si)
+                    {
                         edges[si][e_count].source = map_node_to_state[n];
-                        edges[si][e_count].target = map_node_to_state[ssg.out_adj_list[n][i]];
+                        edges[si][e_count].target = map_node_to_state[ssg.OutAdjList[n][i]];
                         e_count++;
                     }
                 }
-                for (int i = 0; i < ssg.in_adj_sizes[n]; i++) {
-                    if (map_node_to_state[ssg.in_adj_list[n][i]] < si) {
+                for (int i = 0; i < ssg.InAdjSizes[n]; i++)
+                {
+                    if (map_node_to_state[ssg.InAdjList[n][i]] < si)
+                    {
                         edges[si][e_count].target = map_node_to_state[n];
-                        edges[si][e_count].source = map_node_to_state[ssg.in_adj_list[n][i]];
+                        edges[si][e_count].source = map_node_to_state[ssg.InAdjList[n][i]];
                         e_count++;
                     }
                 }
@@ -292,50 +351,68 @@ class MaMaConstrFirstNodeSetsLeafs : public MatchingMachine {
         }
     }
 
-  private:
-    void push_node_to_core(int nid, int si, NodeFlag *node_flags, Graph &qg, int *map_state_to_node, int *map_node_to_state) {
+private:
+    void push_node_to_core(int nid, int si, NodeFlag* node_flags, FAmGraph& qg, int* map_state_to_node, int* map_node_to_state)
+    {
         node_flags[nid] = NS_CORE;
 
-        for (int i = 0; i < qg.out_adj_sizes[nid]; i++) {
-            if (node_flags[qg.out_adj_list[nid][i]] == NS_UNV) {
-                node_flags[qg.out_adj_list[nid][i]] = NS_CNEIGH;
+        for (int i = 0; i < qg.OutAdjSizes[nid]; i++)
+        {
+            if (node_flags[qg.OutAdjList[nid][i]] == NS_UNV)
+            {
+                node_flags[qg.OutAdjList[nid][i]] = NS_CNEIGH;
             }
         }
-        for (int i = 0; i < qg.in_adj_sizes[nid]; i++) {
-            if (node_flags[qg.in_adj_list[nid][i]] == NS_UNV) {
-                node_flags[qg.in_adj_list[nid][i]] = NS_CNEIGH;
+        for (int i = 0; i < qg.InAdjSizes[nid]; i++)
+        {
+            if (node_flags[qg.InAdjList[nid][i]] == NS_UNV)
+            {
+                node_flags[qg.InAdjList[nid][i]] = NS_CNEIGH;
             }
         }
         map_state_to_node[si] = nid;
         map_node_to_state[nid] = si;
     }
 
-    void get_scores(int nid, int *scores, NodeFlag *node_flags, Graph &qg) {
+    void get_scores(int nid, int* scores, NodeFlag* node_flags, FAmGraph& qg)
+    {
         std::set<int> all;
 
         std::set<int> cores;
         std::set<int> neighs;
         std::set<int> unvs;
 
-        for (int i = 0; i < qg.out_adj_sizes[nid]; i++) {
-            if (node_flags[qg.out_adj_list[nid][i]] == NS_CORE) {
-                cores.insert(qg.out_adj_list[nid][i]);
-            } else if (node_flags[qg.out_adj_list[nid][i]] == NS_CNEIGH) {
-                neighs.insert(qg.out_adj_list[nid][i]);
-            } else {
-                unvs.insert(qg.out_adj_list[nid][i]);
+        for (int i = 0; i < qg.OutAdjSizes[nid]; i++)
+        {
+            if (node_flags[qg.OutAdjList[nid][i]] == NS_CORE)
+            {
+                cores.insert(qg.OutAdjList[nid][i]);
             }
-            all.insert(qg.out_adj_list[nid][i]);
+            else if (node_flags[qg.OutAdjList[nid][i]] == NS_CNEIGH)
+            {
+                neighs.insert(qg.OutAdjList[nid][i]);
+            }
+            else
+            {
+                unvs.insert(qg.OutAdjList[nid][i]);
+            }
+            all.insert(qg.OutAdjList[nid][i]);
         }
-        for (int i = 0; i < qg.in_adj_sizes[nid]; i++) {
-            if (node_flags[qg.in_adj_list[nid][i]] == NS_CORE) {
-                cores.insert(qg.in_adj_list[nid][i]);
-            } else if (node_flags[qg.in_adj_list[nid][i]] == NS_CNEIGH) {
-                neighs.insert(qg.in_adj_list[nid][i]);
-            } else {
-                unvs.insert(qg.in_adj_list[nid][i]);
+        for (int i = 0; i < qg.InAdjSizes[nid]; i++)
+        {
+            if (node_flags[qg.InAdjList[nid][i]] == NS_CORE)
+            {
+                cores.insert(qg.InAdjList[nid][i]);
             }
-            all.insert(qg.in_adj_list[nid][i]);
+            else if (node_flags[qg.InAdjList[nid][i]] == NS_CNEIGH)
+            {
+                neighs.insert(qg.InAdjList[nid][i]);
+            }
+            else
+            {
+                unvs.insert(qg.InAdjList[nid][i]);
+            }
+            all.insert(qg.InAdjList[nid][i]);
         }
 
         scores[0] = cores.size();
@@ -345,14 +422,18 @@ class MaMaConstrFirstNodeSetsLeafs : public MatchingMachine {
         scores[4] = domains_size[nid];
     }
 
-    int compare_scores(int *s1, int *s2, int n1, int n2) {
-        for (int i = 0; i < 4; i++) {
-            if (s1[i] != s2[i]) {
+    int compare_scores(int* s1, int* s2, int n1, int n2)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            if (s1[i] != s2[i])
+            {
                 return s1[i] - s2[i];
             }
         }
 
-        if (s1[4] != s2[4]) {
+        if (s1[4] != s2[4])
+        {
 #ifdef MAMACONSTRFIRSTNODESETSLEAFS_H_MDEBUG
             std::cout << "dcomp " << n1 << "-" << n2 << " " << s1[4] << "-" << s2[4] << " \n";
 #endif
@@ -361,7 +442,6 @@ class MaMaConstrFirstNodeSetsLeafs : public MatchingMachine {
         return n2 - n1;
     }
 };
-
 } // namespace rilib
 
 #endif /* MAMACONSTRFIRSTNODESETSLEAFS_H_ */

@@ -130,7 +130,6 @@
     <ClInclude Include="include\timer.h" />
     <ClInclude Include="rilib\AttributeComparator.h" />
     <ClInclude Include="rilib\Domains.h" />
-    <ClInclude Include="rilib\fs_IDer.h" />
     <ClInclude Include="rilib\Graph.h" />
     <ClInclude Include="rilib\InducedSubGISolver.h" />
     <ClInclude Include="rilib\MaMaAngularCoefficient.h" />

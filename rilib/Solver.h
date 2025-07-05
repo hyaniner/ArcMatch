@@ -42,19 +42,20 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <unordered_map>
 
-namespace rilib {
-
-class Solver {
-  public:
-    MatchingMachine &mama;
-    Graph &rgraph;
-    Graph &qgraph;
-    AttributeComparator &nodeComparator;
-    AttributeComparator &edgeComparator;
-    MatchListener &matchListener;
-    sbitset *domains;
-    int *domains_size;
-    EdgeDomains &edomains;
+namespace rilib
+{
+class FAmSolver
+{
+public:
+    FAmMatchingMachine& mama;
+    FAmGraph& rgraph;
+    FAmGraph& qgraph;
+    FAmAttributeComparator& nodeComparator;
+    FAmAttributeComparator& edgeComparator;
+    FAmMatchListener& matchListener;
+    FAmsbitset* domains;
+    int* domains_size;
+    FAmEdgeDomains& edomains;
 
     long steps;
     long triedcouples;
@@ -62,8 +63,19 @@ class Solver {
 
     long matchcount;
 
-  public:
-    Solver(MatchingMachine &_mama, Graph &_rgraph, Graph &_qgraph, AttributeComparator &_nodeComparator, AttributeComparator &_edgeComparator, MatchListener &_matchListener, sbitset *_domains, int *_domains_size, EdgeDomains &_edomains) : mama(_mama), rgraph(_rgraph), qgraph(_qgraph), nodeComparator(_nodeComparator), edgeComparator(_edgeComparator), matchListener(_matchListener), domains(_domains), domains_size(_domains_size), edomains(_edomains) {
+public:
+    FAmSolver(FAmMatchingMachine& _mama, FAmGraph& _rgraph, FAmGraph& _qgraph, FAmAttributeComparator& _nodeComparator, FAmAttributeComparator& _edgeComparator, FAmMatchListener& _matchListener, FAmsbitset* _domains, int* _domains_size
+           , FAmEdgeDomains& _edomains)
+        : mama(_mama)
+        , rgraph(_rgraph)
+        , qgraph(_qgraph)
+        , nodeComparator(_nodeComparator)
+        , edgeComparator(_edgeComparator)
+        , matchListener(_matchListener)
+        , domains(_domains)
+        , domains_size(_domains_size)
+        , edomains(_edomains)
+    {
         steps = 0;
         triedcouples = 0;
         matchedcouples = 0;
@@ -71,38 +83,44 @@ class Solver {
         matchcount = 0;
     }
 
-    virtual ~Solver() {}
+    virtual ~FAmSolver()
+    {
+    }
 
-    void solve() {
+    void solve()
+    {
 
         int ii;
 
         int nof_sn = mama.nof_sn;
-        void **nodes_attrs = mama.nodes_attrs;           // indexed by state_id
-        int *edges_sizes = mama.edges_sizes;             // indexed by state_id
-        MaMaEdge **edges = mama.edges;                   // indexed by state_id
-        int *map_node_to_state = mama.map_node_to_state; // indexed by node_id
-        int *map_state_to_node = mama.map_state_to_node; // indexed by state_id
-        int *parent_state = mama.parent_state;           // indexed by state_id
-        MAMA_PARENTTYPE *parent_type = mama.parent_type; // indexed by state id
+        void** nodes_attrs = mama.nodes_attrs; // indexed by state_id
+        int* edges_sizes = mama.edges_sizes; // indexed by state_id
+        MaMaEdge** edges = mama.edges; // indexed by state_id
+        int* map_node_to_state = mama.map_node_to_state; // indexed by node_id
+        int* map_state_to_node = mama.map_state_to_node; // indexed by state_id
+        int* parent_state = mama.parent_state; // indexed by state_id
+        MAMA_PARENTTYPE* parent_type = mama.parent_type; // indexed by state id
 
-        int **candidates = new int *[nof_sn];  // indexed by state_id
-        int *candidatesIT = new int[nof_sn];   // indexed by state_id
-        int *candidatesSize = new int[nof_sn]; // indexed by state_id
-        int *solution = new int[nof_sn];       // indexed by state_id
+        int** candidates = new int*[nof_sn]; // indexed by state_id
+        int* candidatesIT = new int[nof_sn]; // indexed by state_id
+        int* candidatesSize = new int[nof_sn]; // indexed by state_id
+        int* solution = new int[nof_sn]; // indexed by state_id
         for (ii = 0; ii < nof_sn; ii++)
             solution[ii] = -1;
 
-        bool *matched = (bool *)calloc(rgraph.nof_nodes, sizeof(bool)); // indexed by node_id
+        bool* matched = (bool*)calloc(rgraph.NumOfVertex, sizeof(bool)); // indexed by node_id
 
-        for (int i = 0; i < nof_sn; i++) {
-            if (parent_type[i] == PARENTTYPE_NULL) {
+        for (int i = 0; i < nof_sn; i++)
+        {
+            if (parent_type[i] == PARENTTYPE_NULL)
+            {
                 // std::cout<<"parent type null "<<i<<"\n";
                 int n = map_state_to_node[i];
                 candidates[i] = new int[domains_size[n]];
 
                 int k = 0;
-                for (sbitset::iterator IT = domains[n].first_ones(); IT != domains[n].end(); IT.next_ones()) {
+                for (FAmsbitset::iterator IT = domains[n].first_ones(); IT != domains[n].end(); IT.next_ones())
+                {
                     candidates[i][k] = IT.first;
                     k++;
                 }
@@ -118,21 +136,25 @@ class Solver {
         int si = 0;
         int CandidateIndex = -1;
         int sip1;
-        while (si != -1) {
+        while (si != -1)
+        {
 
-            if (psi >= si) {
+            if (psi >= si)
+            {
                 matched[solution[si]] = false;
             }
 
             CandidateIndex = -1;
             candidatesIT[si]++;
-            while (candidatesIT[si] < candidatesSize[si]) {
+            while (candidatesIT[si] < candidatesSize[si])
+            {
 
                 CandidateIndex = candidates[si][candidatesIT[si]];
                 solution[si] = CandidateIndex;
 
 #ifdef MDEBUG
-                if (!matched[CandidateIndex]) {
+                if (!matched[CandidateIndex])
+                {
                     std::cout << "trying (" << map_state_to_node[si] << "," << CandidateIndex << ")\n";
                     if (!domains[map_state_to_node[si]].get(CandidateIndex))
                         std::cout << "\tfails on domains\n";
@@ -141,21 +163,28 @@ class Solver {
                 }
 #endif
 
-                if ((!matched[CandidateIndex]) && domains[map_state_to_node[si]].get(CandidateIndex) && edgesCheck(si, CandidateIndex, solution, matched)) {
+                if ((!matched[CandidateIndex]) && domains[map_state_to_node[si]].get(CandidateIndex) && edgesCheck(si, CandidateIndex, solution, matched))
+                {
                     break;
-                } else {
+                }
+                else
+                {
                     CandidateIndex = -1;
                 }
                 candidatesIT[si]++;
             }
 
-            if (CandidateIndex == -1) {
+            if (CandidateIndex == -1)
+            {
                 psi = si;
                 si--;
-            } else {
+            }
+            else
+            {
                 matchedcouples++;
 
-                if (si == nof_sn - 1) {
+                if (si == nof_sn - 1)
+                {
                     matchListener.match(nof_sn, map_state_to_node, solution);
 
                     matchcount++;
@@ -168,17 +197,26 @@ class Solver {
                     if (matchcount >= 100000)
                         si = -1;
 #endif
-                } else {
+                }
+                else
+                {
                     matched[solution[si]] = true;
                     sip1 = si + 1;
-                    if (parent_type[sip1] == PARENTTYPE_NULL) {
-                    } else {
-                        if (parent_type[sip1] == PARENTTYPE_IN) {
-                            candidates[sip1] = rgraph.in_adj_list[solution[parent_state[sip1]]];
-                            candidatesSize[sip1] = rgraph.in_adj_sizes[solution[parent_state[sip1]]];
-                        } else { //(parent_type[sip1] == MAMA_PARENTTYPE::PARENTTYPE_OUT)
-                            candidates[sip1] = rgraph.out_adj_list[solution[parent_state[sip1]]];
-                            candidatesSize[sip1] = rgraph.out_adj_sizes[solution[parent_state[sip1]]];
+                    if (parent_type[sip1] == PARENTTYPE_NULL)
+                    {
+                    }
+                    else
+                    {
+                        if (parent_type[sip1] == PARENTTYPE_IN)
+                        {
+                            candidates[sip1] = rgraph.InAdjList[solution[parent_state[sip1]]];
+                            candidatesSize[sip1] = rgraph.InAdjSizes[solution[parent_state[sip1]]];
+                        }
+                        else
+                        {
+                            //(parent_type[sip1] == MAMA_PARENTTYPE::PARENTTYPE_OUT)
+                            candidates[sip1] = rgraph.OutAdjList[solution[parent_state[sip1]]];
+                            candidatesSize[sip1] = rgraph.OutAdjSizes[solution[parent_state[sip1]]];
                         }
                     }
                     candidatesIT[si + 1] = -1;
@@ -190,40 +228,44 @@ class Solver {
         }
     }
 
-    void SolveEd() {
+    void SolveEd()
+    {
 
         int ii;
 
         int nof_sn = mama.nof_sn;
-        int *map_node_to_state = mama.map_node_to_state; // indexed by node_id
-        int *map_state_to_node = mama.map_state_to_node; // indexed by state_id
-        int *parent_state = mama.parent_state;           // indexed by state_id
-        MAMA_PARENTTYPE *parent_type = mama.parent_type; // indexed by state id
+        int* map_node_to_state = mama.map_node_to_state; // indexed by node_id
+        int* map_state_to_node = mama.map_state_to_node; // indexed by state_id
+        int* parent_state = mama.parent_state; // indexed by state_id
+        MAMA_PARENTTYPE* parent_type = mama.parent_type; // indexed by state id
 
-        int **candidates = new int *[nof_sn];         // indexed by state_id
-        int **candidates_parents = new int *[nof_sn]; // indexed by state_id
-        int *candidatesIT = new int[nof_sn];          // indexed by state_id
-        int *candidatesSize = new int[nof_sn];        // indexed by state_id
+        int** candidates = new int*[nof_sn]; // indexed by state_id
+        int** candidates_parents = new int*[nof_sn]; // indexed by state_id
+        int* candidatesIT = new int[nof_sn]; // indexed by state_id
+        int* candidatesSize = new int[nof_sn]; // indexed by state_id
 
         matchcount = 0;
 
-        int *solution = new int[nof_sn]; // indexed by state_id
+        int* solution = new int[nof_sn]; // indexed by state_id
         for (ii = 0; ii < nof_sn; ii++)
             solution[ii] = -1;
 
-        bool *matched = (bool *)calloc(rgraph.nof_nodes, sizeof(bool)); // indexed by node_id
+        bool* matched = (bool*)calloc(rgraph.NumOfVertex, sizeof(bool)); // indexed by node_id
 
-        for (int i = 0; i < nof_sn; i++) {
+        for (int i = 0; i < nof_sn; i++)
+        {
 #ifdef MDEBUG
             std::cout << "-----\n";
 #endif
-            if (parent_type[i] == PARENTTYPE_NULL) {
+            if (parent_type[i] == PARENTTYPE_NULL)
+            {
                 int n = map_state_to_node[i];
                 candidates[i] = new int[domains_size[n]];
                 candidates_parents[i] = new int[domains_size[n]];
 
                 int k = 0;
-                for (sbitset::iterator IT = domains[n].first_ones(); IT != domains[n].end(); IT.next_ones()) {
+                for (FAmsbitset::iterator IT = domains[n].first_ones(); IT != domains[n].end(); IT.next_ones())
+                {
                     candidates[i][k] = IT.first;
                     candidates_parents[i][k] = -1;
                     k++;
@@ -231,19 +273,26 @@ class Solver {
 
                 candidatesSize[i] = domains_size[n];
                 candidatesIT[i] = -1;
-            } else {
+            }
+            else
+            {
                 int eid = -1;
                 int s = 0, t = 0;
-                if (parent_type[i] == PARENTTYPE_OUT) {
+                if (parent_type[i] == PARENTTYPE_OUT)
+                {
                     s = map_state_to_node[parent_state[i]];
                     t = map_state_to_node[i];
-                } else {
+                }
+                else
+                {
                     t = map_state_to_node[parent_state[i]];
                     s = map_state_to_node[i];
                 }
 
-                for (int n = 0; n < qgraph.out_adj_sizes[s]; n++) {
-                    if (qgraph.out_adj_list[s][n] == t) {
+                for (int n = 0; n < qgraph.OutAdjSizes[s]; n++)
+                {
+                    if (qgraph.OutAdjList[s][n] == t)
+                    {
                         eid = edomains.pattern_out_adj_eids[s][n];
                     }
                 }
@@ -261,17 +310,21 @@ class Solver {
                 candidatesIT[i] = -1;
                 candidates[i] = new int[candidatesSize[i]];
                 candidates_parents[i] = new int[candidatesSize[i]];
-                unordered_edge_set *eset = &(edomains.domains[eid]);
+                unordered_edge_set* eset = &(edomains.domains[eid]);
                 int j = 0;
-                for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end(); eit++) {
+                for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end(); eit++)
+                {
 #ifdef MDEBUG
                     std::cout << "E: " << eit->first << " -> " << eit->second << "\n";
 #endif
 
-                    if (parent_type[i] == PARENTTYPE_OUT) {
+                    if (parent_type[i] == PARENTTYPE_OUT)
+                    {
                         candidates_parents[i][j] = eit->first;
                         candidates[i][j] = eit->second;
-                    } else {
+                    }
+                    else
+                    {
                         candidates_parents[i][j] = eit->second;
                         candidates[i][j] = eit->first;
                     }
@@ -282,7 +335,8 @@ class Solver {
 
 #ifdef MDEBUG
         std::cout << "candidate sizes:\n";
-        for (int i = 0; i < nof_sn; i++) {
+        for (int i = 0; i < nof_sn; i++)
+        {
             std::cout << i << ":" << map_state_to_node[i] << ":" << candidatesSize[i] << "\n";
         }
 #endif
@@ -291,15 +345,18 @@ class Solver {
         int si = 0;
         int CandidateIndex = -1;
         int sip1;
-        while (si != -1) {
+        while (si != -1)
+        {
 
-            if (psi >= si) {
+            if (psi >= si)
+            {
                 matched[solution[si]] = false;
             }
 
             CandidateIndex = -1;
             candidatesIT[si]++;
-            while (candidatesIT[si] < candidatesSize[si]) {
+            while (candidatesIT[si] < candidatesSize[si])
+            {
 
                 CandidateIndex = candidates[si][candidatesIT[si]];
                 solution[si] = CandidateIndex;
@@ -308,9 +365,13 @@ class Solver {
                 std::cout << "S: " << si << " " << CandidateIndex << "\n";
 #endif
 
-                if (((candidates_parents[si][candidatesIT[si]] == -1) || (candidates_parents[si][candidatesIT[si]] == solution[parent_state[si]])) && (!matched[candidates[si][candidatesIT[si]]] && edgesCheck(si, CandidateIndex, solution, matched))) {
+                if (((candidates_parents[si][candidatesIT[si]] == -1) || (candidates_parents[si][candidatesIT[si]] == solution[parent_state[si]])) && (!matched[candidates[si][candidatesIT[si]]] && edgesCheck(
+                    si, CandidateIndex, solution, matched)))
+                {
                     break;
-                } else {
+                }
+                else
+                {
                     CandidateIndex = -1;
                 }
 
@@ -321,13 +382,17 @@ class Solver {
                 candidatesIT[si]++;
             }
 
-            if (CandidateIndex == -1) {
+            if (CandidateIndex == -1)
+            {
                 psi = si;
                 si--;
-            } else {
+            }
+            else
+            {
                 matchedcouples++;
 
-                if (si == nof_sn - 1) {
+                if (si == nof_sn - 1)
+                {
 
                     matchListener.match(nof_sn, map_state_to_node, solution);
 
@@ -341,7 +406,9 @@ class Solver {
                     if (matchcount >= 100000)
                         si = -1;
 #endif
-                } else {
+                }
+                else
+                {
                     matched[solution[si]] = true;
                     sip1 = si + 1;
                     candidatesIT[si + 1] = -1;
@@ -353,19 +420,23 @@ class Solver {
     }
 
     // A hash function used to hash a pair of any kind
-    struct hash_pair {
-        template <class T1, class T2> size_t operator()(const pair<T1, T2> &p) const {
+    struct hash_pair
+    {
+        template <class T1, class T2>
+        size_t operator()(const pair<T1, T2>& p) const
+        {
             auto hash1 = hash<T1>{}(p.first);
             auto hash2 = hash<T2>{}(p.second);
             return hash1 ^ hash2;
         }
     };
 
-    void solve_rp() {
+    void solve_rp()
+    {
 
         int nof_sn = mama.nof_sn;
-        int *map_node_to_state = mama.map_node_to_state; // indexed by node_id
-        int *map_state_to_node = mama.map_state_to_node; // indexed by state_id
+        int* map_node_to_state = mama.map_node_to_state; // indexed by node_id
+        int* map_state_to_node = mama.map_state_to_node; // indexed by state_id
 
         typedef std::unordered_map<std::pair<int, int>, int, hash_pair> cand_ecount_t; // (tnodeid,eid) -> count
 
@@ -382,28 +453,34 @@ class Solver {
 
         std::cout << "ORDERED EDGE SETS...\n";
 
-        int **ordered_edge_domains = new int *[edomains.nof_pattern_edges];
-        int *ordered_edge_domains_sizes = new int[edomains.nof_pattern_edges];
+        int** ordered_edge_domains = new int*[edomains.nof_pattern_edges];
+        int* ordered_edge_domains_sizes = new int[edomains.nof_pattern_edges];
 
-        for (int eid = 0; eid < edomains.nof_pattern_edges; eid++) {
-            unordered_edge_set *eset = &(edomains.domains[eid]);
+        for (int eid = 0; eid < edomains.nof_pattern_edges; eid++)
+        {
+            unordered_edge_set* eset = &(edomains.domains[eid]);
             ordered_edge_domains[eid] = new int[eset->size() * 2];
             ordered_edge_domains_sizes[eid] = eset->size();
         }
-        for (int i = 0; i < nof_sn; i++) {
-            for (int j = 0; j < mama.edges_sizes[i]; j++) {
-                if (mama.edges[i][j].source == i) {
+        for (int i = 0; i < nof_sn; i++)
+        {
+            for (int j = 0; j < mama.edges_sizes[i]; j++)
+            {
+                if (mama.edges[i][j].source == i)
+                {
                     int eid = mama.edges[i][j].id;
                     ordered_edge_set tset;
-                    unordered_edge_set *eset = &(edomains.domains[eid]);
-                    for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end(); eit++) {
+                    unordered_edge_set* eset = &(edomains.domains[eid]);
+                    for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end(); eit++)
+                    {
                         tset.insert(std::pair<int, int>(eit->second, eit->first));
 
                         auto it = ce_counter.emplace(std::make_pair(eit->second, eid), 0);
                         it.first->second++;
                     }
                     int k = 0;
-                    for (ordered_edge_set::iterator eit = tset.begin(); eit != tset.end(); eit++) {
+                    for (ordered_edge_set::iterator eit = tset.begin(); eit != tset.end(); eit++)
+                    {
                         ordered_edge_domains[eid][k] = eit->first;
                         ordered_edge_domains[eid][k + ordered_edge_domains_sizes[eid]] = eit->second;
 #ifdef MDEBUG
@@ -414,18 +491,22 @@ class Solver {
 
                         k++;
                     }
-                } else {
+                }
+                else
+                {
                     int eid = mama.edges[i][j].id;
                     ordered_edge_set tset;
-                    unordered_edge_set *eset = &(edomains.domains[eid]);
-                    for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end(); eit++) {
+                    unordered_edge_set* eset = &(edomains.domains[eid]);
+                    for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end(); eit++)
+                    {
                         tset.insert(std::pair<int, int>(eit->first, eit->second));
 
                         auto it = ce_counter.emplace(std::make_pair(eit->first, eid), 0);
                         it.first->second++;
                     }
                     int k = 0;
-                    for (ordered_edge_set::iterator eit = tset.begin(); eit != tset.end(); eit++) {
+                    for (ordered_edge_set::iterator eit = tset.begin(); eit != tset.end(); eit++)
+                    {
                         ordered_edge_domains[eid][k] = eit->first;
                         ordered_edge_domains[eid][k + ordered_edge_domains_sizes[eid]] = eit->second;
 #ifdef MDEBUG
@@ -441,65 +522,78 @@ class Solver {
 
         std::cout << "ORDERED EDGE SETS: done\n";
 
-        int **f_domains = new int *[nof_sn];
-        for (int si = 0; si < nof_sn; si++) {
-            if (mama.edges_sizes[si] == 0) {
+        int** f_domains = new int*[nof_sn];
+        for (int si = 0; si < nof_sn; si++)
+        {
+            if (mama.edges_sizes[si] == 0)
+            {
                 int n = map_state_to_node[si];
                 f_domains[si] = new int[domains_size[n]];
                 int k = 0;
-                for (sbitset::iterator IT = domains[n].first_ones(); IT != domains[n].end(); IT.next_ones()) {
+                for (FAmsbitset::iterator IT = domains[n].first_ones(); IT != domains[n].end(); IT.next_ones())
+                {
                     f_domains[si][k] = IT.first;
                     k++;
                 }
             }
         }
 
-        int *candidateIT = new int[nof_sn];
-        int *candidateITeid = new int[nof_sn];
-        int *candidateITpnode = new int[nof_sn];
-        int *candidateITpstate = new int[nof_sn];
-        int *candidateITsize = new int[nof_sn];
+        int* candidateIT = new int[nof_sn];
+        int* candidateITeid = new int[nof_sn];
+        int* candidateITpnode = new int[nof_sn];
+        int* candidateITpstate = new int[nof_sn];
+        int* candidateITsize = new int[nof_sn];
 
-        for (int i = 0; i < nof_sn; i++) {
+        for (int i = 0; i < nof_sn; i++)
+        {
             candidateIT[i] = -1;
         }
 
-        int *solution = new int[nof_sn]; // indexed by state_id
+        int* solution = new int[nof_sn]; // indexed by state_id
         for (int i = 0; i < nof_sn; i++)
             solution[i] = -1;
 
-        bool *matched = (bool *)calloc(rgraph.nof_nodes, sizeof(bool)); // indexed by node_id
+        bool* matched = (bool*)calloc(rgraph.NumOfVertex, sizeof(bool)); // indexed by node_id
 
         int psi = -1;
         int si = 0;
         int CandidateIndex = -1;
         int sip1;
         int eid, pnode, maxp, maxe, maxpcount;
-        while (si != -1) {
+        while (si != -1)
+        {
 
 #ifdef MDEBUG
             std::cout << "----------------------------------------\n";
             std::cout << "SI " << si << " - PATTERN " << map_state_to_node[si] << "\n";
 #endif
 
-            if (psi >= si) {
+            if (psi >= si)
+            {
                 matched[solution[si]] = false;
             }
 
             CandidateIndex = -1;
 
-            if (candidateIT[si] == -1) {
-                if (mama.edges_sizes[si] == 0) {
+            if (candidateIT[si] == -1)
+            {
+                if (mama.edges_sizes[si] == 0)
+                {
                     candidateIT[si] = -1;
                     candidateITsize[si] = domains_size[map_state_to_node[si]];
-                } else if (mama.edges_sizes[si] == 1) {
+                }
+                else if (mama.edges_sizes[si] == 1)
+                {
                     int pstate;
                     eid = mama.edges[si][0].id;
 
-                    if (mama.edges[si][0].source == si) {
+                    if (mama.edges[si][0].source == si)
+                    {
                         pnode = solution[mama.edges[si][0].target];
                         pstate = mama.edges[si][0].target;
-                    } else {
+                    }
+                    else
+                    {
                         pnode = solution[mama.edges[si][0].source];
                         pstate = mama.edges[si][0].source;
                     }
@@ -511,26 +605,36 @@ class Solver {
 #ifdef MDEBUG
                     std::cout << "single parent: eid " << candidateITeid[si] << "; pnode " << pnode << "; pstate " << pstate << ";ce position " << candidateIT[si] << "\n";
 #endif
-                } else {
+                }
+                else
+                {
                     maxp = -1;
                     int pstate;
-                    for (int j = 0; j < mama.edges_sizes[si]; j++) {
+                    for (int j = 0; j < mama.edges_sizes[si]; j++)
+                    {
                         eid = mama.edges[si][j].id;
 
-                        if (mama.edges[si][j].source == si) {
+                        if (mama.edges[si][j].source == si)
+                        {
                             pnode = solution[mama.edges[si][j].target];
-                        } else {
+                        }
+                        else
+                        {
                             pnode = solution[mama.edges[si][j].source];
                         }
 
-                        if ((maxp == -1) || (ce_counter[std::make_pair(pnode, eid)] > maxpcount)) {
+                        if ((maxp == -1) || (ce_counter[std::make_pair(pnode, eid)] > maxpcount))
+                        {
                             maxp = pnode;
                             maxe = eid;
                             maxpcount = ce_counter[std::make_pair(pnode, eid)];
 
-                            if (mama.edges[si][j].source == si) {
+                            if (mama.edges[si][j].source == si)
+                            {
                                 pstate = mama.edges[si][j].target;
-                            } else {
+                            }
+                            else
+                            {
                                 pstate = mama.edges[si][j].source;
                             }
                         }
@@ -547,42 +651,58 @@ class Solver {
                 }
             }
 
-            if (mama.edges_sizes[si] == 0) {
+            if (mama.edges_sizes[si] == 0)
+            {
                 candidateIT[si]++;
-                while (candidateIT[si] < candidateITsize[si]) {
-                    if (!matched[f_domains[si][candidateIT[si]]]) {
+                while (candidateIT[si] < candidateITsize[si])
+                {
+                    if (!matched[f_domains[si][candidateIT[si]]])
+                    {
 
                         CandidateIndex = f_domains[si][candidateIT[si]];
 
                         solution[si] = CandidateIndex;
-                        if (edgesCheck(si, CandidateIndex, solution, matched)) {
+                        if (edgesCheck(si, CandidateIndex, solution, matched))
+                        {
                             break;
-                        } else {
+                        }
+                        else
+                        {
                             CandidateIndex = -1;
                         }
                     }
                     candidateIT[si]++;
                 }
-                if (candidateIT[si] >= candidateITsize[si]) {
+                if (candidateIT[si] >= candidateITsize[si])
+                {
                     CandidateIndex = -1;
                 }
-            } else {
+            }
+            else
+            {
                 candidateIT[si]++;
-                while (candidateIT[si] < candidateITsize[si]) {
+                while (candidateIT[si] < candidateITsize[si])
+                {
 #ifdef MDEBUG
-                    std::cout << "pCI " << candidateIT[si] << "; size " << candidateITsize[si] << "; eid " << candidateITeid[si] << " " << ordered_edge_domains[candidateITeid[si]][candidateIT[si]] << "-" << ordered_edge_domains[candidateITeid[si]][candidateIT[si] + candidateITsize[si]] << ":" << ordered_edge_domains[candidateITeid[si]][candidateIT[si] + candidateITsize[si]] << "; pnode " << candidateITpnode[si] << "\n";
+                    std::cout << "pCI " << candidateIT[si] << "; size " << candidateITsize[si] << "; eid " << candidateITeid[si] << " " << ordered_edge_domains[candidateITeid[si]][candidateIT[si]] << "-" << ordered_edge_domains[
+                        candidateITeid[si]][candidateIT[si] + candidateITsize[si]] << ":" << ordered_edge_domains[candidateITeid[si]][candidateIT[si] + candidateITsize[si]] << "; pnode " << candidateITpnode[si] << "\n";
 #endif
-                    if (ordered_edge_domains[candidateITeid[si]][candidateIT[si]] == candidateITpnode[si]) {
-                        if (!matched[ordered_edge_domains[candidateITeid[si]][candidateIT[si] + candidateITsize[si]]]) {
+                    if (ordered_edge_domains[candidateITeid[si]][candidateIT[si]] == candidateITpnode[si])
+                    {
+                        if (!matched[ordered_edge_domains[candidateITeid[si]][candidateIT[si] + candidateITsize[si]]])
+                        {
                             CandidateIndex = ordered_edge_domains[candidateITeid[si]][candidateIT[si] + candidateITsize[si]];
                             solution[si] = CandidateIndex;
 
-                            if (mama.edges_sizes[si] > 1) {
+                            if (mama.edges_sizes[si] > 1)
+                            {
 
                                 bool checked = true;
-                                for (int me = 0; me < mama.edges_sizes[si]; me++) {
+                                for (int me = 0; me < mama.edges_sizes[si]; me++)
+                                {
 
-                                    if (edomains.domains[mama.edges[si][me].id].count(std::pair<int, int>(solution[mama.edges[si][me].source], solution[mama.edges[si][me].target])) == 0) {
+                                    if (edomains.domains[mama.edges[si][me].id].count(std::pair<int, int>(solution[mama.edges[si][me].source], solution[mama.edges[si][me].target])) == 0)
+                                    {
                                         checked = false;
                                         break;
                                     }
@@ -590,12 +710,17 @@ class Solver {
                                 if (checked)
                                     checked &= edgesCheck(si, CandidateIndex, solution, matched);
 
-                                if (checked) {
+                                if (checked)
+                                {
                                     break;
-                                } else {
+                                }
+                                else
+                                {
                                     CandidateIndex = -1;
                                 }
-                            } else {
+                            }
+                            else
+                            {
                                 break;
                             }
 
@@ -605,7 +730,9 @@ class Solver {
                             std::cout << "already matched\n";
                         }
 #endif
-                    } else {
+                    }
+                    else
+                    {
 #ifdef MDEBUG
                         std::cout << "end of candidates\n";
 #endif
@@ -614,7 +741,8 @@ class Solver {
                     }
                     candidateIT[si]++;
                 }
-                if (candidateIT[si] >= candidateITsize[si]) {
+                if (candidateIT[si] >= candidateITsize[si])
+                {
 #ifdef MDEBUG
                     std::cout << "end of candidate list\n";
 #endif
@@ -626,15 +754,19 @@ class Solver {
             std::cout << "CI " << CandidateIndex << "\n";
 #endif
 
-            if (CandidateIndex == -1) {
+            if (CandidateIndex == -1)
+            {
                 candidateIT[si] = -1;
 
                 psi = si;
                 si--;
-            } else {
+            }
+            else
+            {
                 matchedcouples++;
 
-                if (si == nof_sn - 1) {
+                if (si == nof_sn - 1)
+                {
 #ifdef PRINT_MATCHES
                     matchListener.match(nof_sn, map_state_to_node, solution);
 #endif
@@ -643,13 +775,15 @@ class Solver {
                     psi = si;
 #ifdef FIRST_MATCH_ONLY
                     si = -1;
-//					return IF U WANT JUST AN INSTANCE
+                    //					return IF U WANT JUST AN INSTANCE
 #endif
 #ifdef FIRST_100k_MATCHES
                     if (matchcount >= 100000)
                         si = -1;
 #endif
-                } else {
+                }
+                else
+                {
                     matched[solution[si]] = true;
                     sip1 = si + 1;
                     psi = si;
@@ -688,7 +822,7 @@ class Solver {
             ordered_edge_domains[eid] = new int[eset->size() * 2];
             ordered_edge_domains_sizes[eid] = eset->size();
         }
-        
+
         for (int i = 0; i < NumOfQueryVertex; i++)
         {
             for (int j = 0; j < mama.edges_sizes[i]; j++)
@@ -757,7 +891,7 @@ class Solver {
                 int n = map_state_to_node[si];
                 f_domains[si] = new int[domains_size[n]];
                 int k = 0;
-                for (sbitset::iterator IT = domains[n].first_ones(); IT != domains[n].end(); IT.next_ones())
+                for (FAmsbitset::iterator IT = domains[n].first_ones(); IT != domains[n].end(); IT.next_ones())
                 {
                     f_domains[si][k] = IT.first;
                     k++;
@@ -783,7 +917,7 @@ class Solver {
             solution[i] = -1;
         }
 
-        auto matched = (bool*)calloc(rgraph.nof_nodes, sizeof(bool)); // indexed by node_id
+        auto matched = (bool*)calloc(rgraph.NumOfVertex, sizeof(bool)); // indexed by node_id
 
         int psi = -1;
         int StateIndex = 0;
@@ -1108,9 +1242,8 @@ class Solver {
         }
     };
 
-    virtual bool edgesCheck(int si, int ci, int *solution, bool *matched) = 0;
+    virtual bool edgesCheck(int si, int ci, int* solution, bool* matched) = 0;
 };
-
 } // namespace rilib
 
 #endif /* SOLVER_H_ */

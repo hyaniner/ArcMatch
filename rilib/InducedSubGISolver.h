@@ -34,27 +34,37 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "Solver.h"
 
-namespace rilib {
+namespace rilib
+{
+class FAmInducedSubGISolver : public FAmSolver
+{
+public:
+    FAmInducedSubGISolver(FAmMatchingMachine& _mama, FAmGraph& _rgraph, FAmGraph& _qgraph, FAmAttributeComparator& _nodeComparator, FAmAttributeComparator& _edgeComparator, FAmMatchListener& _matchListener, FAmsbitset* _domains, int* _domains_size
+                       , FAmEdgeDomains& _edomains)
+        : FAmSolver(_mama, _rgraph, _qgraph, _nodeComparator, _edgeComparator, _matchListener, _domains, _domains_size, _edomains)
+    {
+    }
 
-class InducedSubGISolver : public Solver {
-  public:
-    InducedSubGISolver(MatchingMachine &_mama, Graph &_rgraph, Graph &_qgraph, AttributeComparator &_nodeComparator, AttributeComparator &_edgeComparator, MatchListener &_matchListener, sbitset *_domains, int *_domains_size, EdgeDomains &_edomains) : Solver(_mama, _rgraph, _qgraph, _nodeComparator, _edgeComparator, _matchListener, _domains, _domains_size, _edomains) {}
-
-    virtual bool edgesCheck(int si, int ci, int *solution, bool *matched) {
+    virtual bool edgesCheck(int si, int ci, int* solution, bool* matched)
+    {
 
         int ii;
 
         int count = 0;
-        for (ii = 0; ii < rgraph.out_adj_sizes[ci]; ii++) {
-            if (matched[rgraph.out_adj_list[ci][ii]]) {
+        for (ii = 0; ii < rgraph.OutAdjSizes[ci]; ii++)
+        {
+            if (matched[rgraph.OutAdjList[ci][ii]])
+            {
                 count++;
                 if (count > mama.o_edges_sizes[si])
                     return false;
             }
         }
         count = 0;
-        for (ii = 0; ii < rgraph.in_adj_sizes[ci]; ii++) {
-            if (matched[rgraph.in_adj_list[ci][ii]]) {
+        for (ii = 0; ii < rgraph.InAdjSizes[ci]; ii++)
+        {
+            if (matched[rgraph.InAdjList[ci][ii]])
+            {
                 count++;
                 if (count > mama.i_edges_sizes[si])
                     return false;
@@ -64,7 +74,6 @@ class InducedSubGISolver : public Solver {
         return true;
     }
 };
-
 } // namespace rilib
 
 #endif /* INDSUBGISOLVER_H_ */

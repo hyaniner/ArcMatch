@@ -42,28 +42,37 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include <bits/stdc++.h>
 #include <tuple>
 
-namespace rilib {
-
-class MaMaFloodCore : public MatchingMachine {
-
-    sbitset *node_domains;
-    int *node_domains_size;
-    EdgeDomains &edge_domains;
+namespace rilib
+{
+class FAmMaMaFloodCore : public FAmMatchingMachine
+{
+    FAmsbitset* node_domains;
+    int* node_domains_size;
+    FAmEdgeDomains& edge_domains;
     int max_depth;
 
-  public:
-    MaMaFloodCore(Graph &query, sbitset *_node_domains, int *_node_domains_size, EdgeDomains &_edomains, int _max_depth) : MatchingMachine(query), node_domains(_node_domains), node_domains_size(_node_domains_size), edge_domains(_edomains), max_depth(_max_depth) {}
+public:
+    FAmMaMaFloodCore(FAmGraph& query, FAmsbitset* _node_domains, int* _node_domains_size, FAmEdgeDomains& _edomains, int _max_depth)
+        : FAmMatchingMachine(query)
+        , node_domains(_node_domains)
+        , node_domains_size(_node_domains_size)
+        , edge_domains(_edomains)
+        , max_depth(_max_depth)
+    {
+    }
 
     enum NodeFlag { NS_CORE, NS_CNEIGH, NS_UNV };
 
-    void flood_centrality(Graph &query, int nfs, int inode, double *centrality, double *ccentrality, int *depth, double **o_query_e_weights, double **i_query_e_weights, NodeFlag *node_flags, int max_depth) {
+    void flood_centrality(FAmGraph& query, int nfs, int inode, double* centrality, double* ccentrality, int* depth, double** o_query_e_weights, double** i_query_e_weights, NodeFlag* node_flags, int max_depth)
+    {
 
-        int *queue = new int[nfs];
+        int* queue = new int[nfs];
         int cn, n;
         int q, ql = 0, qr = 0, nqr = 0;
         node_flags[inode] = NS_CORE;
 
-        for (int cn = 0; cn < nfs; cn++) {
+        for (int cn = 0; cn < nfs; cn++)
+        {
             centrality[cn] = 0.0;
             ccentrality[cn] = 0.0;
             depth[cn] = nfs;
@@ -71,47 +80,63 @@ class MaMaFloodCore : public MatchingMachine {
 
         cn = inode;
         depth[cn] = 0;
-        for (int i = 0; i < query.out_adj_sizes[cn]; i++) {
-            n = query.out_adj_list[cn][i];
-            if (node_flags[n] != NS_CORE) {
-                if (depth[n] == nfs) {
+        for (int i = 0; i < query.OutAdjSizes[cn]; i++)
+        {
+            n = query.OutAdjList[cn][i];
+            if (node_flags[n] != NS_CORE)
+            {
+                if (depth[n] == nfs)
+                {
                     depth[n] = 1;
                     queue[qr] = n;
                     qr++;
                 }
-            } else {
+            }
+            else
+            {
                 depth[n] = 0;
                 centrality[cn] += 1.0;
             }
         }
-        for (int i = 0; i < query.in_adj_sizes[cn]; i++) {
-            n = query.in_adj_list[cn][i];
-            if (node_flags[n] != NS_CORE) {
-                if (depth[n] == nfs) {
+        for (int i = 0; i < query.InAdjSizes[cn]; i++)
+        {
+            n = query.InAdjList[cn][i];
+            if (node_flags[n] != NS_CORE)
+            {
+                if (depth[n] == nfs)
+                {
                     depth[n] = 1;
                     queue[qr] = n;
                     qr++;
                 }
-            } else {
+            }
+            else
+            {
                 depth[n] = 0;
                 centrality[cn] += 1.0;
             }
         }
 
-        for (cn = 0; cn < nfs; cn++) {
-            if (node_flags[cn] == NS_CORE) {
+        for (cn = 0; cn < nfs; cn++)
+        {
+            if (node_flags[cn] == NS_CORE)
+            {
 
-                for (int i = 0; i < query.out_adj_sizes[cn]; i++) {
-                    n = query.out_adj_list[cn][i];
-                    if (depth[n] == 1) {
+                for (int i = 0; i < query.OutAdjSizes[cn]; i++)
+                {
+                    n = query.OutAdjList[cn][i];
+                    if (depth[n] == 1)
+                    {
                         centrality[n] += o_query_e_weights[cn][i];
                         ccentrality[n] += centrality[inode] * o_query_e_weights[cn][i];
                     }
                 }
 
-                for (int i = 0; i < query.in_adj_sizes[cn]; i++) {
-                    n = query.in_adj_list[cn][i];
-                    if (depth[n] == 1) {
+                for (int i = 0; i < query.InAdjSizes[cn]; i++)
+                {
+                    n = query.InAdjList[cn][i];
+                    if (depth[n] == 1)
+                    {
                         centrality[n] += i_query_e_weights[cn][i];
                         ccentrality[n] += centrality[inode] * i_query_e_weights[cn][i];
                     }
@@ -120,23 +145,32 @@ class MaMaFloodCore : public MatchingMachine {
         }
 
         int cdepth = 1;
-        while ((ql < qr) && (cdepth <= max_depth)) {
+        while ((ql < qr) && (cdepth <= max_depth))
+        {
             nqr = qr;
-            for (q = ql; q < nqr; q++) {
+            for (q = ql; q < nqr; q++)
+            {
                 cn = queue[q];
 
-                for (int i = 0; i < query.out_adj_sizes[cn]; i++) {
-                    n = query.out_adj_list[cn][i];
-                    if (depth[n] == cdepth) {
+                for (int i = 0; i < query.OutAdjSizes[cn]; i++)
+                {
+                    n = query.OutAdjList[cn][i];
+                    if (depth[n] == cdepth)
+                    {
                         centrality[n] += centrality[cn] * o_query_e_weights[cn][i];
-                    } else if (depth[n] > cdepth) {
+                    }
+                    else if (depth[n] > cdepth)
+                    {
                         centrality[n] += centrality[cn] * o_query_e_weights[cn][i];
                         depth[n] = cdepth + 1;
-                        if (depth[n] == nfs) {
+                        if (depth[n] == nfs)
+                        {
                             queue[qr] = n;
                             qr++;
                         }
-                    } else if (node_flags[n] == NS_CORE) {
+                    }
+                    else if (node_flags[n] == NS_CORE)
+                    {
 #ifdef MDEBUG
                         std::cout << "@" << depth[cn] << " " << centrality[cn] << " " << o_query_e_weights[cn][i] << "\n";
 #endif
@@ -144,18 +178,25 @@ class MaMaFloodCore : public MatchingMachine {
                     }
                 }
 
-                for (int i = 0; i < query.in_adj_sizes[cn]; i++) {
-                    n = query.in_adj_list[cn][i];
-                    if (depth[n] == cdepth) {
+                for (int i = 0; i < query.InAdjSizes[cn]; i++)
+                {
+                    n = query.InAdjList[cn][i];
+                    if (depth[n] == cdepth)
+                    {
                         centrality[n] += centrality[cn] * i_query_e_weights[cn][i];
-                    } else if (depth[n] > cdepth) {
+                    }
+                    else if (depth[n] > cdepth)
+                    {
                         centrality[n] += centrality[cn] * i_query_e_weights[cn][i];
                         depth[n] = cdepth + 1;
-                        if (depth[n] == nfs) {
+                        if (depth[n] == nfs)
+                        {
                             queue[qr] = n;
                             qr++;
                         }
-                    } else if (node_flags[n] == NS_CORE) {
+                    }
+                    else if (node_flags[n] == NS_CORE)
+                    {
 #ifdef MDEBUG
                         std::cout << "@" << depth[cn] << " " << centrality[cn] << " " << i_query_e_weights[cn][i] << "\n";
 #endif
@@ -171,79 +212,101 @@ class MaMaFloodCore : public MatchingMachine {
         node_flags[inode] = NS_CNEIGH;
     }
 
-    void update_score(int nfs, int inode, Graph &query, double **scores, double *centrality, double *ccentrality, int *depth) {
-        for (int i = 0; i < 5; i++) {
+    void update_score(int nfs, int inode, FAmGraph& query, double** scores, double* centrality, double* ccentrality, int* depth)
+    {
+        for (int i = 0; i < 5; i++)
+        {
             scores[inode][i] = 0.0;
         }
 
-        for (int i = 0; i < nfs; i++) {
-            if (i != inode) {
-                if (depth[i] == 1) {
+        for (int i = 0; i < nfs; i++)
+        {
+            if (i != inode)
+            {
+                if (depth[i] == 1)
+                {
                     scores[inode][1] += ccentrality[i];
                     scores[inode][3] += centrality[i];
-                } else if (depth[i] == 2) {
+                }
+                else if (depth[i] == 2)
+                {
                     scores[inode][2] += ccentrality[i];
                     scores[inode][4] += centrality[i];
                 }
-            } else {
+            }
+            else
+            {
                 scores[inode][0] += centrality[i];
             }
         }
     }
 
-    double wcompare(double **scores, int ni, int nj) {
+    double wcompare(double** scores, int ni, int nj)
+    {
         double ret = 0.0;
-        for (int i = 0; i < 5; i++) {
-            if (scores[ni][i] != scores[nj][i]) {
+        for (int i = 0; i < 5; i++)
+        {
+            if (scores[ni][i] != scores[nj][i])
+            {
                 return (scores[ni][i] - scores[nj][i]);
             }
         }
         return ret;
     }
 
-    virtual void build(Graph &query) {
-        const int nfs = query.nof_nodes;
+    virtual void build(FAmGraph& query)
+    {
+        const int nfs = query.NumOfVertex;
 
-        double **o_query_e_weights = new double *[nfs];
-        for (int i = 0; i < query.nof_nodes; i++) {
-            o_query_e_weights[i] = new double[query.out_adj_sizes[i]];
-            for (int j = 0; j < query.out_adj_sizes[i]; j++) {
+        double** o_query_e_weights = new double*[nfs];
+        for (int i = 0; i < query.NumOfVertex; i++)
+        {
+            o_query_e_weights[i] = new double[query.OutAdjSizes[i]];
+            for (int j = 0; j < query.OutAdjSizes[i]; j++)
+            {
 
                 o_query_e_weights[i][j] = 1.0 - (((double)edge_domains.domains[edge_domains.pattern_out_adj_eids[i][j]].size()) / ((double)edge_domains.nof_target_edges));
             }
         }
 
-        double **i_query_e_weights = new double *[nfs];
-        for (int i = 0; i < query.nof_nodes; i++) {
-            i_query_e_weights[i] = new double[query.in_adj_sizes[i]];
-            for (int j = 0; j < query.in_adj_sizes[i]; j++) {
+        double** i_query_e_weights = new double*[nfs];
+        for (int i = 0; i < query.NumOfVertex; i++)
+        {
+            i_query_e_weights[i] = new double[query.InAdjSizes[i]];
+            for (int j = 0; j < query.InAdjSizes[i]; j++)
+            {
 
                 i_query_e_weights[i][j] = 1.0 - (((double)edge_domains.domains[edge_domains.pattern_in_adj_eids[i][j]].size()) / ((double)edge_domains.nof_target_edges));
             }
         }
 
-        int *ordering = new int[nfs];
+        int* ordering = new int[nfs];
 
-        NodeFlag *node_flags = new NodeFlag[nfs];
-        for (int i = 0; i < nfs; i++) {
+        NodeFlag* node_flags = new NodeFlag[nfs];
+        for (int i = 0; i < nfs; i++)
+        {
             node_flags[i] = NS_UNV;
         }
 
-        double **scores = new double *[nfs];
-        for (int i = 0; i < nfs; i++) {
+        double** scores = new double*[nfs];
+        for (int i = 0; i < nfs; i++)
+        {
             scores[i] = new double[5];
-            for (int j = 0; j < 5; j++) {
+            for (int j = 0; j < 5; j++)
+            {
                 scores[i][j] = 0.0;
             }
         }
 
-        double *centrality = new double[nfs];
-        double *ccentrality = new double[nfs];
-        int *depth = new int[nfs];
+        double* centrality = new double[nfs];
+        double* ccentrality = new double[nfs];
+        int* depth = new int[nfs];
 
         int si = 0, n, nn;
-        for (int i = 0; i < nfs; i++) {
-            if (node_domains_size[i] == 1) {
+        for (int i = 0; i < nfs; i++)
+        {
+            if (node_domains_size[i] == 1)
+            {
 #ifdef MDEBUG
                 std::cout << "SINGLETON " << i << " " << si << "\n";
 #endif
@@ -254,15 +317,19 @@ class MaMaFloodCore : public MatchingMachine {
 
                 node_flags[i] = NS_CORE;
 
-                for (int j = 0; j < query.out_adj_sizes[i]; j++) {
-                    n = query.out_adj_list[i][j];
-                    if (node_flags[n] == NS_UNV) {
+                for (int j = 0; j < query.OutAdjSizes[i]; j++)
+                {
+                    n = query.OutAdjList[i][j];
+                    if (node_flags[n] == NS_UNV)
+                    {
                         node_flags[n] = NS_CNEIGH;
                     }
                 }
-                for (int j = 0; j < query.in_adj_sizes[i]; j++) {
-                    n = query.in_adj_list[i][j];
-                    if (node_flags[n] == NS_UNV) {
+                for (int j = 0; j < query.InAdjSizes[i]; j++)
+                {
+                    n = query.InAdjList[i][j];
+                    if (node_flags[n] == NS_UNV)
+                    {
                         node_flags[n] = NS_CNEIGH;
                     }
                 }
@@ -270,13 +337,15 @@ class MaMaFloodCore : public MatchingMachine {
             }
         }
 
-        if (si < nfs) {
+        if (si < nfs)
+        {
 #ifdef MDEBUG
             std::cout << "si " << si << "\n";
 #endif
 
             NodeFlag oflag;
-            for (int i = 0; i < nfs; i++) {
+            for (int i = 0; i < nfs; i++)
+            {
                 oflag = node_flags[i];
                 flood_centrality(query, nfs, i, centrality, ccentrality, depth, o_query_e_weights, i_query_e_weights, node_flags, 3);
                 node_flags[i] = oflag;
@@ -284,9 +353,11 @@ class MaMaFloodCore : public MatchingMachine {
             }
 
 #ifdef MDEBUG
-            for (int cn = 0; cn < nfs; cn++) {
+            for (int cn = 0; cn < nfs; cn++)
+            {
                 std::cout << "FIRST " << cn << " ";
-                for (int k = 0; k < 5; k++) {
+                for (int k = 0; k < 5; k++)
+                {
                     std::cout << scores[cn][k] << " ";
                 }
                 std::cout << "\n";
@@ -294,12 +365,18 @@ class MaMaFloodCore : public MatchingMachine {
 #endif
 
             int max_score_node = -1;
-            for (int cn = 0; cn < nfs; cn++) {
-                if (node_flags[cn] != NS_CORE) {
-                    if (max_score_node == -1) {
+            for (int cn = 0; cn < nfs; cn++)
+            {
+                if (node_flags[cn] != NS_CORE)
+                {
+                    if (max_score_node == -1)
+                    {
                         max_score_node = cn;
-                    } else {
-                        if (wcompare(scores, cn, max_score_node) > 0.0) {
+                    }
+                    else
+                    {
+                        if (wcompare(scores, cn, max_score_node) > 0.0)
+                        {
                             max_score_node = cn;
                         }
                     }
@@ -311,41 +388,51 @@ class MaMaFloodCore : public MatchingMachine {
 #endif
             ordering[si] = max_score_node;
             node_flags[max_score_node] = NS_CORE;
-            for (int i = 0; i < query.out_adj_sizes[max_score_node]; i++) {
-                n = query.out_adj_list[max_score_node][i];
-                if (node_flags[n] == NS_UNV) {
+            for (int i = 0; i < query.OutAdjSizes[max_score_node]; i++)
+            {
+                n = query.OutAdjList[max_score_node][i];
+                if (node_flags[n] == NS_UNV)
+                {
                     node_flags[n] = NS_CNEIGH;
                 }
             }
-            for (int i = 0; i < query.in_adj_sizes[max_score_node]; i++) {
-                n = query.in_adj_list[max_score_node][i];
-                if (node_flags[n] == NS_UNV) {
+            for (int i = 0; i < query.InAdjSizes[max_score_node]; i++)
+            {
+                n = query.InAdjList[max_score_node][i];
+                if (node_flags[n] == NS_UNV)
+                {
                     node_flags[n] = NS_CNEIGH;
                 }
             }
             si++;
 
-            while (si < nfs) {
+            while (si < nfs)
+            {
 #ifdef MDEBUG
                 std::cout << "\n========================================\n";
                 std::cout << "si " << si << "\n";
                 std::cout << "CORES: ";
-                for (int cn = 0; cn < nfs; cn++) {
-                    if (node_flags[cn] == NS_CORE) {
+                for (int cn = 0; cn < nfs; cn++)
+                {
+                    if (node_flags[cn] == NS_CORE)
+                    {
                         std::cout << cn << " ";
                     }
                 }
                 std::cout << "\n";
 #endif
 
-                for (int cn = 0; cn < nfs; cn++) {
-                    if (node_flags[cn] == NS_CNEIGH) {
+                for (int cn = 0; cn < nfs; cn++)
+                {
+                    if (node_flags[cn] == NS_CNEIGH)
+                    {
                         flood_centrality(query, nfs, cn, centrality, ccentrality, depth, o_query_e_weights, i_query_e_weights, node_flags, 3);
                         update_score(nfs, cn, query, scores, centrality, ccentrality, depth);
 
 #ifdef MDEBUG
                         std::cout << "CS_NEIGH " << cn << " ";
-                        for (int k = 0; k < 5; k++) {
+                        for (int k = 0; k < 5; k++)
+                        {
                             std::cout << scores[cn][k] << " ";
                         }
                         std::cout << "\n";
@@ -354,11 +441,16 @@ class MaMaFloodCore : public MatchingMachine {
                 }
 
                 max_score_node = -1;
-                for (int cn = 0; cn < nfs; cn++) {
-                    if (node_flags[cn] != NS_CORE) {
-                        if (max_score_node == -1) {
+                for (int cn = 0; cn < nfs; cn++)
+                {
+                    if (node_flags[cn] != NS_CORE)
+                    {
+                        if (max_score_node == -1)
+                        {
                             max_score_node = cn;
-                        } else if (wcompare(scores, cn, max_score_node) > 0.0) {
+                        }
+                        else if (wcompare(scores, cn, max_score_node) > 0.0)
+                        {
                             max_score_node = cn;
                         }
                     }
@@ -371,15 +463,19 @@ class MaMaFloodCore : public MatchingMachine {
                 ordering[si] = max_score_node;
                 node_flags[max_score_node] = NS_CORE;
 
-                for (int i = 0; i < query.out_adj_sizes[max_score_node]; i++) {
-                    n = query.out_adj_list[max_score_node][i];
-                    if (node_flags[n] == NS_UNV) {
+                for (int i = 0; i < query.OutAdjSizes[max_score_node]; i++)
+                {
+                    n = query.OutAdjList[max_score_node][i];
+                    if (node_flags[n] == NS_UNV)
+                    {
                         node_flags[n] = NS_CNEIGH;
                     }
                 }
-                for (int i = 0; i < query.in_adj_sizes[max_score_node]; i++) {
-                    n = query.in_adj_list[max_score_node][i];
-                    if (node_flags[n] == NS_UNV) {
+                for (int i = 0; i < query.InAdjSizes[max_score_node]; i++)
+                {
+                    n = query.InAdjList[max_score_node][i];
+                    if (node_flags[n] == NS_UNV)
+                    {
                         node_flags[n] = NS_CNEIGH;
                     }
                 }
@@ -388,7 +484,8 @@ class MaMaFloodCore : public MatchingMachine {
             }
         }
 
-        for (int i = 0; i < nfs; i++) {
+        for (int i = 0; i < nfs; i++)
+        {
             map_node_to_state[ordering[i]] = i;
             map_state_to_node[i] = ordering[i];
             parent_type[i] = PARENTTYPE_NULL;
@@ -401,21 +498,26 @@ class MaMaFloodCore : public MatchingMachine {
 
 #ifdef MDEBUG
         std::cout << "ORDERING\n";
-        for (int i = 0; i < nfs; i++) {
+        for (int i = 0; i < nfs; i++)
+        {
             std::cout << i << " " << ordering[i] << " " << map_state_to_node[i] << " " << map_node_to_state[ordering[i]] << "\n";
         }
 #endif
 
         int nof_sn = nfs;
         int e_count, o_e_count, i_e_count;
-        for (int si = 1; si < nof_sn; si++) {
+        for (int si = 1; si < nof_sn; si++)
+        {
 
             n = map_state_to_node[si];
 
-            for (int j = 0; j < query.out_adj_sizes[n]; j++) {
-                nn = query.out_adj_list[n][j];
-                if (map_node_to_state[nn] < si) {
-                    if (parent_state[si] == -1) {
+            for (int j = 0; j < query.OutAdjSizes[n]; j++)
+            {
+                nn = query.OutAdjList[n][j];
+                if (map_node_to_state[nn] < si)
+                {
+                    if (parent_state[si] == -1)
+                    {
 #ifdef MDEBUG
                         std::cout << "IN:" << n << " <- " << nn << "\n";
 #endif
@@ -425,11 +527,15 @@ class MaMaFloodCore : public MatchingMachine {
                     }
                 }
             }
-            if (parent_state[si] == -1) {
-                for (int j = 0; j < query.in_adj_sizes[n]; j++) {
-                    nn = query.in_adj_list[n][j];
-                    if (map_node_to_state[nn] < si) {
-                        if (parent_state[si] == -1) {
+            if (parent_state[si] == -1)
+            {
+                for (int j = 0; j < query.InAdjSizes[n]; j++)
+                {
+                    nn = query.InAdjList[n][j];
+                    if (map_node_to_state[nn] < si)
+                    {
+                        if (parent_state[si] == -1)
+                        {
 #ifdef MDEBUG
                             std::cout << "OUT:" << n << " <- " << nn << "\n";
 #endif
@@ -441,35 +547,41 @@ class MaMaFloodCore : public MatchingMachine {
                 }
             }
 #ifdef MDEBUG
-            if (parent_type[si] != PARENTTYPE_NULL) {
+            if (parent_type[si] != PARENTTYPE_NULL)
+            {
                 std::cout << "P:" << si << " " << n << " " << parent_state[si] << " " << map_state_to_node[parent_state[si]];
                 if (parent_type[si] == PARENTTYPE_OUT)
                     std::cout << " out\n";
                 else
                     std::cout << " in\n";
-            } else {
-                std::cout << "P:" << si << " " << n << " " << parent_state[si] << " NULL\n";
-                ;
+            }
+            else
+            {
+                std::cout << "P:" << si << " " << n << " " << parent_state[si] << " NULL\n";;
             }
 #endif
             e_count = 0;
             o_e_count = 0;
             std::vector<std::tuple<double, int, int>> crdeges;
-            for (int i = 0; i < query.out_adj_sizes[n]; i++) {
-                if (map_node_to_state[query.out_adj_list[n][i]] < si) {
+            for (int i = 0; i < query.OutAdjSizes[n]; i++)
+            {
+                if (map_node_to_state[query.OutAdjList[n][i]] < si)
+                {
                     e_count++;
                     o_e_count++;
-                    crdeges.push_back(std::tuple<double, int, int>(o_query_e_weights[n][i], query.out_adj_list[n][i], 0));
+                    crdeges.push_back(std::tuple<double, int, int>(o_query_e_weights[n][i], query.OutAdjList[n][i], 0));
                 }
             }
             i_e_count = 0;
 
-            for (int i = 0; i < query.in_adj_sizes[n]; i++) {
-                if (map_node_to_state[query.in_adj_list[n][i]] < si) {
+            for (int i = 0; i < query.InAdjSizes[n]; i++)
+            {
+                if (map_node_to_state[query.InAdjList[n][i]] < si)
+                {
                     e_count++;
                     i_e_count++;
 
-                    crdeges.push_back(std::tuple<double, int, int>(i_query_e_weights[n][i], query.in_adj_list[n][i], 1));
+                    crdeges.push_back(std::tuple<double, int, int>(i_query_e_weights[n][i], query.InAdjList[n][i], 1));
                 }
             }
 
@@ -479,14 +591,17 @@ class MaMaFloodCore : public MatchingMachine {
 
             edges[si] = new MaMaEdge[e_count];
 
-            if (e_count > 0) {
+            if (e_count > 0)
+            {
                 std::sort(crdeges.begin(), crdeges.end());
                 std::reverse(crdeges.begin(), crdeges.end());
 
                 e_count = 0;
 
-                for (std::vector<std::tuple<double, int, int>>::iterator it = crdeges.begin(); it != crdeges.end(); it++) {
-                    if (std::get<2>(*it) == 0) {
+                for (std::vector<std::tuple<double, int, int>>::iterator it = crdeges.begin(); it != crdeges.end(); it++)
+                {
+                    if (std::get<2>(*it) == 0)
+                    {
                         edges[si][e_count].source = map_node_to_state[n];
                         edges[si][e_count].target = map_node_to_state[std::get<1>(*it)];
 
@@ -495,7 +610,9 @@ class MaMaFloodCore : public MatchingMachine {
                         std::cout << edges[si][e_count].source << " " << edges[si][e_count].target << "-----++++++<\n";
 #endif
                         e_count++;
-                    } else {
+                    }
+                    else
+                    {
                         edges[si][e_count].target = map_node_to_state[n];
                         edges[si][e_count].source = map_node_to_state[std::get<1>(*it)];
 
@@ -510,6 +627,5 @@ class MaMaFloodCore : public MatchingMachine {
         }
     }
 };
-
 } // namespace rilib
 #endif // MAMAFLOODCORE_H_

@@ -236,21 +236,21 @@ int match(
 
 	int rret;
 
-	AttributeComparator* nodeComparator;	//to compare node labels
-	AttributeComparator* edgeComparator;	//to compare edges labels
+	FAmAttributeComparator* nodeComparator;	//to compare node labels
+	FAmAttributeComparator* edgeComparator;	//to compare edges labels
 	switch(filetype){
 		case GFT_GFU:
 		case GFT_GFD:
 			//for these formats, labels are only on nodes and they are strings
-			nodeComparator = new StringAttrComparator();
+			nodeComparator = new FAmStringAttrComparator();
 			//nodeComparator = new DefaultAttrComparator();
-			edgeComparator = new DefaultAttrComparator();
+			edgeComparator = new FAmDefaultAttrComparator();
 			break;
 		case GFT_EGFU:
 		case GFT_EGFD:
 			//labels both on nodes and edges
-			nodeComparator = new StringAttrComparator();
-			edgeComparator = new StringAttrComparator();
+			nodeComparator = new FAmStringAttrComparator();
+			edgeComparator = new FAmStringAttrComparator();
 			break;
 //		case GFT_VFU:
 //			//no labels
@@ -269,16 +269,12 @@ int match(
 
 	//read the query
 	//load_s_q=start_time();
-	Graph *query = new Graph();
+	FAmGraph *query = new FAmGraph();
 	rret = read_graph(queryfile.c_str(), query, filetype);
 	//load_t_q+=end_time(load_s_q);
 	if(rret !=0){
 		std::cout<<"error on reading query graph\n";
 	}
-
-#ifdef MDEBUG
-	query->print();
-#endif
 
 	//delete dquery;
 	//load_t_q+=end_time(load_s_q);
@@ -293,17 +289,17 @@ int match(
 	if(fd != NULL){
 #ifdef PRINT_MATCHES
 		//if you want to print found matches on screen
-		MatchListener* matchListener=new ConsoleMatchListener();
+		FAmMatchListener* matchListener=new FAmConsoleMatchListener();
 #else
 		//do not print matches
-		MatchListener* matchListener=new EmptyMatchListener();
+		FAmMatchListener* matchListener=new FAmEmptyMatchListener();
 #endif
 
 		int i=0;
 		bool rreaded = true;
 		do{	//for each reference graph in the file
 			//load_s=start_time();
-			Graph * rrg = new Graph();
+			FAmGraph * rrg = new FAmGraph();
 			//read the graph
 #ifdef MDEBUG
 	std::cout<<"reading reference...\n";
@@ -317,10 +313,10 @@ int match(
 			if(rreaded){
 
 				if(!doBijIso ||
-					(doBijIso && (query->nof_nodes == rrg->nof_nodes))){
+					(doBijIso && (query->NumOfVertex == rrg->NumOfVertex))){
 
 					//initialize domains
-					sbitset *domains = new sbitset[query->nof_nodes];
+					FAmsbitset *domains = new FAmsbitset[query->NumOfVertex];
 					//match_s=start_time();
 
 					std::cout<<"initializing domain...\n";
@@ -339,7 +335,7 @@ int match(
 
 						//match_s=start_time();
 
-						EdgeDomains edomains;
+						FAmEdgeDomains edomains;
 						std::cout<<"edomain init\n";
 
 						//s_tmp = start_time();
@@ -354,7 +350,7 @@ int match(
 						//s_tmp = start_time();
 
 #ifdef REDUCE_EDGES
-						DomainReduction dr(*query, domains, edomains, rrg->nof_nodes);
+						FAmDomainReduction dr(*query, domains, edomains, rrg->NumOfVertex);
 						std::cout<<"edomain reduction\n";
 						dr.reduce_by_paths(PATH_LENGTH);
 						//dr.reduce_by_paths(query->nof_nodes+1);
@@ -375,11 +371,11 @@ int match(
 						//std::cout<<"building matching machine...\n";
 
 						//just get the domain size for each query node
-						int *domains_size = new int[query->nof_nodes];
+						int *domains_size = new int[query->NumOfVertex];
 						int dsize;
-						for(int ii=0; ii<query->nof_nodes; ii++){
+						for(int ii=0; ii<query->NumOfVertex; ii++){
 							dsize = 0;
-							for(sbitset::iterator IT = domains[ii].first_ones(); IT!=domains[ii].end(); IT.next_ones()){
+							for(FAmsbitset::iterator IT = domains[ii].first_ones(); IT!=domains[ii].end(); IT.next_ones()){
 								dsize++;
 							}
 							domains_size[ii] = dsize;
@@ -400,31 +396,31 @@ int match(
 						
 						//MatchingMachine* mama = new MaMaConstrFirstDs(*query, domains, domains_size);
 						#ifdef MAMA_1
-						MatchingMachine* mama = new MaMaConstrFirstDs(*query, domains, domains_size);
+						FAmMatchingMachine* mama = new FAmMaMaConstrFirstDs(*query, domains, domains_size);
 						#endif
 
 						#ifdef MAMA_0
-						MatchingMachine* mama = new MaMaConstrFirstEDs(*query, domains, domains_size, edomains);
+						FAmMatchingMachine* mama = new FAmMaMaConstrFirstEDs(*query, domains, domains_size, edomains);
 						#endif
 
 						#ifdef MAMA_FC
-						MatchingMachine* mama = new MaMaFloodCore(*query, domains, domains_size, edomains, query->nof_nodes);
+						FAmMatchingMachine* mama = new FAmMaMaFloodCore(*query, domains, domains_size, edomains, query->NumOfVertex);
 						#endif
 						
 						#ifdef MAMA_AC
-						MatchingMachine* mama = new MaMaAngularCoefficient(*query, domains, domains_size, edomains);
+						FAmMatchingMachine* mama = new FAmMaMaAngularCoefficient(*query, domains, domains_size, edomains);
 						#endif
 
 						#ifdef MAMA_NS
-						MatchingMachine* mama = new MaMaConstrFirstNodeSets(*query, domains, domains_size);
+						FAmMatchingMachine* mama = new FAmMaMaConstrFirstNodeSets(*query, domains, domains_size);
 						#endif
 
 						#ifdef MAMA_NSL
-						MatchingMachine* mama = new MaMaConstrFirstNodeSetsLeafs(*query, domains, domains_size);
+						FAmMatchingMachine* mama = new FAmMaMaConstrFirstNodeSetsLeafs(*query, domains, domains_size);
 						#endif
 
 						#ifdef MAMA_CC
-						MatchingMachine* mama = new MaMaConstrFirstNSCC(*query, domains, domains_size, *nodeComparator, *edgeComparator);
+						FAmMatchingMachine* mama = new FAmMaMaConstrFirstNSCC(*query, domains, domains_size, *nodeComparator, *edgeComparator);
 						#endif
 
 
@@ -465,14 +461,14 @@ int match(
 	std::cout<<"solving...\n";
 #endif
 						//prepare the matching phase
-						Solver* solver;
+						FAmSolver* solver;
 						switch(matchtype){
 						case MT_MONO:
-							solver = new SubGISolver(*mama, *rrg, *query, *nodeComparator, *edgeComparator, *matchListener, domains, domains_size, edomains);
+							solver = new FAmSubGISolver(*mama, *rrg, *query, *nodeComparator, *edgeComparator, *matchListener, domains, domains_size, edomains);
 							break;
 						case MT_ISO:  //a specialized solver for this will be better
 						case MT_INDSUB:
-							solver = new InducedSubGISolver(*mama, *rrg, *query, *nodeComparator, *edgeComparator, *matchListener, domains, domains_size, edomains);
+							solver = new FAmInducedSubGISolver(*mama, *rrg, *query, *nodeComparator, *edgeComparator, *matchListener, domains, domains_size, edomains);
 							break;
 						}
 

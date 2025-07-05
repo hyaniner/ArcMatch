@@ -61,7 +61,7 @@ class MaMaEdge {
 
 enum MAMA_PARENTTYPE { PARENTTYPE_IN, PARENTTYPE_OUT, PARENTTYPE_NULL };
 
-class MatchingMachine {
+class FAmMatchingMachine {
   public:
     int nof_sn;
 
@@ -79,11 +79,11 @@ class MatchingMachine {
 
     int nof_leafs;
 
-    MatchingMachine(Graph &query) {
+    FAmMatchingMachine(FAmGraph &query) {
 #ifdef MDEBUG
-        std::cout << "mama constructor (" << query.nof_nodes << ")...\n";
+        std::cout << "mama constructor (" << query.NumOfVertex << ")...\n";
 #endif
-        nof_sn = query.nof_nodes;
+        nof_sn = query.NumOfVertex;
         nodes_attrs = new void *[nof_sn];
         edges_sizes = (int *)calloc(nof_sn, sizeof(int));
         o_edges_sizes = (int *)calloc(nof_sn, sizeof(int));
@@ -101,7 +101,7 @@ class MatchingMachine {
 #endif
     }
 
-    virtual ~MatchingMachine() {
+    virtual ~FAmMatchingMachine() {
         delete[] nodes_attrs;
         for (int i = 0; i < nof_sn; i++) {
             delete[] edges[i];
@@ -116,7 +116,7 @@ class MatchingMachine {
         delete[] parent_type;
     }
 
-    void fix_eids(Graph &query) {
+    void fix_eids(FAmGraph &query) {
         int source, target, eid;
         for (int si = 0; si < nof_sn; si++) {
             for (int ei = 0; ei < edges_sizes[si]; ei++) {
@@ -125,10 +125,10 @@ class MatchingMachine {
 
                 eid = 0;
                 for (int i = 0; i < source; i++) {
-                    eid += query.out_adj_sizes[i];
+                    eid += query.OutAdjSizes[i];
                 }
-                for (int i = 0; i < query.out_adj_sizes[source]; i++) {
-                    if (query.out_adj_list[source][i] == target) {
+                for (int i = 0; i < query.OutAdjSizes[source]; i++) {
+                    if (query.OutAdjList[source][i] == target) {
                         edges[si][ei].id = eid;
                         break;
                     }
@@ -175,7 +175,7 @@ class MatchingMachine {
     }
 
   public:
-    virtual void build(Graph &ssg) = 0;
+    virtual void build(FAmGraph &ssg) = 0;
 };
 
 } // namespace rilib

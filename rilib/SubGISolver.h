@@ -36,9 +36,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace rilib {
 
-class SubGISolver : public Solver {
+class FAmSubGISolver : public FAmSolver {
   public:
-    SubGISolver(MatchingMachine &_mama, Graph &_rgraph, Graph &_qgraph, AttributeComparator &_nodeComparator, AttributeComparator &_edgeComparator, MatchListener &_matchListener, sbitset *_domains, int *_domains_size, EdgeDomains &_edomains) : Solver(_mama, _rgraph, _qgraph, _nodeComparator, _edgeComparator, _matchListener, _domains, _domains_size, _edomains) {}
+    FAmSubGISolver(FAmMatchingMachine &_mama, FAmGraph &_rgraph, FAmGraph &_qgraph, FAmAttributeComparator &_nodeComparator, FAmAttributeComparator &_edgeComparator, FAmMatchListener &_matchListener, FAmsbitset *_domains, int *_domains_size, FAmEdgeDomains &_edomains) : FAmSolver(_mama, _rgraph, _qgraph, _nodeComparator, _edgeComparator, _matchListener, _domains, _domains_size, _edomains) {}
 
     virtual bool edgesCheck(int si, int ci, int *solution, bool *matched) { return true; }
 };

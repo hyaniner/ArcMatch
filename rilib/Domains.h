@@ -40,29 +40,41 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <tuple>
 #include <unordered_set>
 
-namespace rilib {
+namespace rilib
+{
+bool init_domains(FAmGraph& target, FAmGraph& pattern, FAmAttributeComparator& nodeComparator, FAmAttributeComparator& edgeComparator, FAmsbitset* domains, bool iso)
+{
 
-bool init_domains(Graph &target, Graph &pattern, AttributeComparator &nodeComparator, AttributeComparator &edgeComparator, sbitset *domains, bool iso) {
-
-    if (iso) {
-        for (int q = 0; q < pattern.nof_nodes; q++) {
-            for (int r = target.nof_nodes - 1; r >= 0; r--) {
-                if (target.out_adj_sizes[r] == pattern.out_adj_sizes[q] && target.in_adj_sizes[r] == pattern.in_adj_sizes[q] && nodeComparator.compare(target.nodes_attrs[r], pattern.nodes_attrs[q])) {
+    if (iso)
+    {
+        for (int q = 0; q < pattern.NumOfVertex; q++)
+        {
+            for (int r = target.NumOfVertex - 1; r >= 0; r--)
+            {
+                if (target.OutAdjSizes[r] == pattern.OutAdjSizes[q] && target.InAdjSizes[r] == pattern.InAdjSizes[q] && nodeComparator.compare(target.VertexAttributes[r], pattern.VertexAttributes[q]))
+                {
                     domains[q].set(r, true);
                 }
             }
-            if (domains[q].is_empty()) {
+            if (domains[q].is_empty())
+            {
                 return false;
             }
         }
-    } else {
-        for (int q = 0; q < pattern.nof_nodes; q++) {
-            for (int r = target.nof_nodes - 1; r >= 0; r--) {
-                if (target.out_adj_sizes[r] >= pattern.out_adj_sizes[q] && target.in_adj_sizes[r] >= pattern.in_adj_sizes[q] && nodeComparator.compare(target.nodes_attrs[r], pattern.nodes_attrs[q])) {
+    }
+    else
+    {
+        for (int q = 0; q < pattern.NumOfVertex; q++)
+        {
+            for (int r = target.NumOfVertex - 1; r >= 0; r--)
+            {
+                if (target.OutAdjSizes[r] >= pattern.OutAdjSizes[q] && target.InAdjSizes[r] >= pattern.InAdjSizes[q] && nodeComparator.compare(target.VertexAttributes[r], pattern.VertexAttributes[q]))
+                {
                     domains[q].set(r, true);
                 }
             }
-            if (domains[q].is_empty()) {
+            if (domains[q].is_empty())
+            {
                 return false;
             }
         }
@@ -72,24 +84,30 @@ bool init_domains(Graph &target, Graph &pattern, AttributeComparator &nodeCompar
     bool notfound;
 
     // 1°-level neighborhood and edges labels
-    for (int qa = 0; qa < pattern.nof_nodes; qa++) {
+    for (int qa = 0; qa < pattern.NumOfVertex; qa++)
+    {
 
-        for (sbitset::iterator qaIT = domains[qa].first_ones(); qaIT != domains[qa].end(); qaIT.next_ones()) {
+        for (FAmsbitset::iterator qaIT = domains[qa].first_ones(); qaIT != domains[qa].end(); qaIT.next_ones())
+        {
             ra = qaIT.first;
             // for each edge qa->qb  check if exists ra->rb
-            for (int i_qb = 0; i_qb < pattern.out_adj_sizes[qa]; i_qb++) {
-                qb = pattern.out_adj_list[qa][i_qb];
+            for (int i_qb = 0; i_qb < pattern.OutAdjSizes[qa]; i_qb++)
+            {
+                qb = pattern.OutAdjList[qa][i_qb];
                 notfound = true;
 
-                for (int i_rb = 0; i_rb < target.out_adj_sizes[ra]; i_rb++) {
-                    rb = target.out_adj_list[ra][i_rb];
-                    if (domains[qb].get(rb) && edgeComparator.compare(pattern.out_adj_attrs[qa][i_qb], target.out_adj_attrs[ra][i_rb])) {
+                for (int i_rb = 0; i_rb < target.OutAdjSizes[ra]; i_rb++)
+                {
+                    rb = target.OutAdjList[ra][i_rb];
+                    if (domains[qb].get(rb) && edgeComparator.compare(pattern.OutAdjAttributes[qa][i_qb], target.OutAdjAttributes[ra][i_rb]))
+                    {
                         notfound = false;
                         break;
                     }
                 }
 
-                if (notfound) {
+                if (notfound)
+                {
                     domains[qa].set(ra, false);
                     break;
                 }
@@ -102,24 +120,31 @@ bool init_domains(Graph &target, Graph &pattern, AttributeComparator &nodeCompar
 
 #ifdef NODE_D_CONV
     bool changes = true;
-    while (changes) {
+    while (changes)
+    {
         changes = false;
-        for (int qa = 0; qa < pattern.nof_nodes; qa++) {
-            for (sbitset::iterator qaIT = domains[qa].first_ones(); qaIT != domains[qa].end(); qaIT.next_ones()) {
+        for (int qa = 0; qa < pattern.NumOfVertex; qa++)
+        {
+            for (FAmsbitset::iterator qaIT = domains[qa].first_ones(); qaIT != domains[qa].end(); qaIT.next_ones())
+            {
                 ra = qaIT.first;
                 // fore each edge qa->qb  check if exists ra->rb
-                for (int i_qb = 0; i_qb < pattern.out_adj_sizes[qa]; i_qb++) {
-                    qb = pattern.out_adj_list[qa][i_qb];
+                for (int i_qb = 0; i_qb < pattern.OutAdjSizes[qa]; i_qb++)
+                {
+                    qb = pattern.OutAdjList[qa][i_qb];
                     notfound = true;
-                    for (int i_rb = 0; i_rb < target.out_adj_sizes[ra]; i_rb++) {
-                        rb = target.out_adj_list[ra][i_rb];
-                        if (domains[qb].get(rb) && edgeComparator.compare(pattern.out_adj_attrs[qa][i_qb], target.out_adj_attrs[ra][i_rb])) {
+                    for (int i_rb = 0; i_rb < target.OutAdjSizes[ra]; i_rb++)
+                    {
+                        rb = target.OutAdjList[ra][i_rb];
+                        if (domains[qb].get(rb) && edgeComparator.compare(pattern.OutAdjAttributes[qa][i_qb], target.OutAdjAttributes[ra][i_rb]))
+                        {
                             notfound = false;
                             break;
                         }
                     }
 
-                    if (notfound) {
+                    if (notfound)
+                    {
                         domains[qa].set(ra, false);
                         changes = true;
                     }
@@ -134,51 +159,63 @@ bool init_domains(Graph &target, Graph &pattern, AttributeComparator &nodeCompar
     return true;
 };
 
-struct pair_hash {
-    inline std::size_t operator()(const std::pair<int, int> &v) const { return v.first * 31 + v.second; }
+struct pair_hash
+{
+    inline std::size_t operator()(const std::pair<int, int>& v) const
+    {
+        return v.first * 31 + v.second;
+    }
 };
 
 typedef std::unordered_set<std::pair<int, int>, pair_hash> unordered_edge_set;
 
-class EdgeDomains {
-  public:
-    int **pattern_out_adj_eids;
-    int *inv_pattern_edge_ids;
-    int *inv_target_edge_ids;
+class FAmEdgeDomains
+{
+public:
+    int** pattern_out_adj_eids;
+    int* inv_pattern_edge_ids;
+    int* inv_target_edge_ids;
     int nof_pattern_edges;
     int nof_target_edges;
 
-    int **pattern_in_adj_eids;
+    int** pattern_in_adj_eids;
 
-    unordered_edge_set *domains;
+    unordered_edge_set* domains;
 
-    EdgeDomains(){};
+    FAmEdgeDomains()
+    {
+    };
 };
 
-bool init_edomains(Graph &target, Graph &pattern, sbitset *node_domains, AttributeComparator &edgeComparator, EdgeDomains &edomains) {
+bool init_edomains(FAmGraph& target, FAmGraph& pattern, FAmsbitset* node_domains, FAmAttributeComparator& edgeComparator, FAmEdgeDomains& edomains)
+{
     int nof_pedges = 0;
-    for (int i = 0; i < pattern.nof_nodes; i++) {
-        nof_pedges += pattern.out_adj_sizes[i];
+    for (int i = 0; i < pattern.NumOfVertex; i++)
+    {
+        nof_pedges += pattern.OutAdjSizes[i];
     }
 
     int nof_tedges = 0;
-    for (int i = 0; i < target.nof_nodes; i++) {
-        nof_tedges += target.out_adj_sizes[i];
+    for (int i = 0; i < target.NumOfVertex; i++)
+    {
+        nof_tedges += target.OutAdjSizes[i];
     }
 
     edomains.nof_pattern_edges = nof_pedges;
     edomains.nof_target_edges = nof_tedges;
 
-    edomains.pattern_out_adj_eids = new int *[pattern.nof_nodes];
+    edomains.pattern_out_adj_eids = new int*[pattern.NumOfVertex];
 
     edomains.inv_pattern_edge_ids = new int[nof_pedges * 2];
 
     edomains.inv_target_edge_ids = new int[nof_tedges * 2];
 
     int n = 0;
-    for (int i = 0; i < pattern.nof_nodes; i++) {
-        edomains.pattern_out_adj_eids[i] = new int[pattern.out_adj_sizes[i]];
-        for (int j = 0; j < pattern.out_adj_sizes[i]; j++) {
+    for (int i = 0; i < pattern.NumOfVertex; i++)
+    {
+        edomains.pattern_out_adj_eids[i] = new int[pattern.OutAdjSizes[i]];
+        for (int j = 0; j < pattern.OutAdjSizes[i]; j++)
+        {
             edomains.inv_pattern_edge_ids[n * 2] = i;
             edomains.inv_pattern_edge_ids[(n * 2) + 1] = j;
             edomains.pattern_out_adj_eids[i][j] = n;
@@ -186,15 +223,19 @@ bool init_edomains(Graph &target, Graph &pattern, sbitset *node_domains, Attribu
         }
     }
 
-    edomains.pattern_in_adj_eids = new int *[pattern.nof_nodes];
-    for (int i = 0; i < pattern.nof_nodes; i++) {
-        edomains.pattern_in_adj_eids[i] = new int[pattern.in_adj_sizes[i]];
+    edomains.pattern_in_adj_eids = new int*[pattern.NumOfVertex];
+    for (int i = 0; i < pattern.NumOfVertex; i++)
+    {
+        edomains.pattern_in_adj_eids[i] = new int[pattern.InAdjSizes[i]];
 
-        for (int j = 0; j < pattern.in_adj_sizes[i]; j++) {
-            int nn = pattern.in_adj_list[i][j];
+        for (int j = 0; j < pattern.InAdjSizes[i]; j++)
+        {
+            int nn = pattern.InAdjList[i][j];
 
-            for (int ni = 0; ni < pattern.out_adj_sizes[nn]; ni++) {
-                if (pattern.out_adj_list[nn][ni] == i) {
+            for (int ni = 0; ni < pattern.OutAdjSizes[nn]; ni++)
+            {
+                if (pattern.OutAdjList[nn][ni] == i)
+                {
                     edomains.pattern_in_adj_eids[i][j] = edomains.pattern_out_adj_eids[nn][ni];
                     break;
                 }
@@ -203,8 +244,10 @@ bool init_edomains(Graph &target, Graph &pattern, sbitset *node_domains, Attribu
     }
 
     n = 0;
-    for (int i = 0; i < target.nof_nodes; i++) {
-        for (int j = 0; j < target.out_adj_sizes[i]; j++) {
+    for (int i = 0; i < target.NumOfVertex; i++)
+    {
+        for (int j = 0; j < target.OutAdjSizes[i]; j++)
+        {
             edomains.inv_target_edge_ids[n * 2] = i;
             edomains.inv_target_edge_ids[(n * 2) + 1] = j;
             n++;
@@ -220,22 +263,29 @@ bool init_edomains(Graph &target, Graph &pattern, sbitset *node_domains, Attribu
     The search is made by checking fo edge label compatibility.
     */
 
-    for (int ps = 0; ps < pattern.nof_nodes; ps++) {
-        for (int ps_n = 0; ps_n < pattern.out_adj_sizes[ps]; ps_n++) {
+    for (int ps = 0; ps < pattern.NumOfVertex; ps++)
+    {
+        for (int ps_n = 0; ps_n < pattern.OutAdjSizes[ps]; ps_n++)
+        {
 
-            int pt = pattern.out_adj_list[ps][ps_n];
+            int pt = pattern.OutAdjList[ps][ps_n];
 
-            for (sbitset::iterator psIT = node_domains[ps].first_ones(); psIT != node_domains[ps].end(); psIT.next_ones()) {
+            for (FAmsbitset::iterator psIT = node_domains[ps].first_ones(); psIT != node_domains[ps].end(); psIT.next_ones())
+            {
 
                 int ts = psIT.first;
 
-                for (sbitset::iterator ptIT = node_domains[pt].first_ones(); ptIT != node_domains[pt].end(); ptIT.next_ones()) {
+                for (FAmsbitset::iterator ptIT = node_domains[pt].first_ones(); ptIT != node_domains[pt].end(); ptIT.next_ones())
+                {
 
                     int tt = ptIT.first;
 
-                    for (int ts_n = 0; ts_n < target.out_adj_sizes[ts]; ts_n++) {
-                        if (tt == target.out_adj_list[ts][ts_n]) {
-                            if (edgeComparator.compare(pattern.out_adj_attrs[ps][ps_n], target.out_adj_attrs[ts][ts_n])) {
+                    for (int ts_n = 0; ts_n < target.OutAdjSizes[ts]; ts_n++)
+                    {
+                        if (tt == target.OutAdjList[ts][ts_n])
+                        {
+                            if (edgeComparator.compare(pattern.OutAdjAttributes[ps][ps_n], target.OutAdjAttributes[ts][ts_n]))
+                            {
 
                                 edomains.domains[edomains.pattern_out_adj_eids[ps][ps_n]].insert(std::pair<int, int>(ts, tt));
                             }
@@ -249,112 +299,152 @@ bool init_edomains(Graph &target, Graph &pattern, sbitset *node_domains, Attribu
     return true;
 };
 
-class DomainReduction {
-  public:
-    Graph &query;
-    sbitset *node_domains;
-    EdgeDomains &edge_domains;
+class FAmDomainReduction
+{
+public:
+    FAmGraph& query;
+    FAmsbitset* node_domains;
+    FAmEdgeDomains& edge_domains;
     int nof_target_nodes;
 
-    DomainReduction(Graph &_query, sbitset *ndomains, EdgeDomains &edomains, int noftargetnodes) : query(_query), node_domains(ndomains), edge_domains(edomains), nof_target_nodes(noftargetnodes){};
+    FAmDomainReduction(FAmGraph& _query, FAmsbitset* ndomains, FAmEdgeDomains& edomains, int noftargetnodes)
+        : query(_query)
+        , node_domains(ndomains)
+        , edge_domains(edomains)
+        , nof_target_nodes(noftargetnodes)
+    {
+    };
 
-    bool refine_domains(int altered_q_node) {
+    bool refine_domains(int altered_q_node)
+    {
         bool erased = false;
 
         int n;
-        for (int ni = 0; ni < query.out_adj_sizes[altered_q_node]; ni++) {
-            n = query.out_adj_list[altered_q_node][ni];
-            unordered_edge_set *eset = &(edge_domains.domains[edge_domains.pattern_out_adj_eids[altered_q_node][ni]]);
+        for (int ni = 0; ni < query.OutAdjSizes[altered_q_node]; ni++)
+        {
+            n = query.OutAdjList[altered_q_node][ni];
+            unordered_edge_set* eset = &(edge_domains.domains[edge_domains.pattern_out_adj_eids[altered_q_node][ni]]);
 
-            for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end();) {
-                if (node_domains[altered_q_node].get(eit->first) == false) {
+            for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end();)
+            {
+                if (node_domains[altered_q_node].get(eit->first) == false)
+                {
                     eset->erase(eit++);
                     erased = true;
-                } else {
+                }
+                else
+                {
                     ++eit;
                 }
             }
         }
 
-        for (int ni = 0; ni < query.in_adj_sizes[altered_q_node]; ni++) {
-            n = query.in_adj_list[altered_q_node][ni];
-            unordered_edge_set *eset = &(edge_domains.domains[edge_domains.pattern_in_adj_eids[altered_q_node][ni]]);
+        for (int ni = 0; ni < query.InAdjSizes[altered_q_node]; ni++)
+        {
+            n = query.InAdjList[altered_q_node][ni];
+            unordered_edge_set* eset = &(edge_domains.domains[edge_domains.pattern_in_adj_eids[altered_q_node][ni]]);
 
-            for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end();) {
-                if (node_domains[altered_q_node].get(eit->second) == false) {
+            for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end();)
+            {
+                if (node_domains[altered_q_node].get(eit->second) == false)
+                {
                     eset->erase(eit++);
                     erased = true;
-                } else {
+                }
+                else
+                {
                     ++eit;
                 }
             }
         }
 
 #ifdef EDGE_D_CONV
-        if (erased) {
-            while (erased) {
+        if (erased)
+        {
+            while (erased)
+            {
                 erased = false;
 
-                for (int s = 0; s < query.nof_nodes; s++) {
-                    for (int ni = 0; ni < query.out_adj_sizes[s]; ni++) {
-                        n = query.out_adj_list[s][ni];
-                        unordered_edge_set *eset = &(edge_domains.domains[edge_domains.pattern_out_adj_eids[s][ni]]);
-                        for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end();) {
-                            if ((node_domains[s].get(eit->first) == false) || (node_domains[n].get(eit->second) == false)) {
+                for (int s = 0; s < query.NumOfVertex; s++)
+                {
+                    for (int ni = 0; ni < query.OutAdjSizes[s]; ni++)
+                    {
+                        n = query.OutAdjList[s][ni];
+                        unordered_edge_set* eset = &(edge_domains.domains[edge_domains.pattern_out_adj_eids[s][ni]]);
+                        for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end();)
+                        {
+                            if ((node_domains[s].get(eit->first) == false) || (node_domains[n].get(eit->second) == false))
+                            {
                                 eset->erase(eit++);
-                            } else {
+                            }
+                            else
+                            {
                                 ++eit;
                             }
                         }
                     }
                 }
 
-                for (int ni = 0; ni < query.in_adj_sizes[altered_q_node]; ni++) {
-                    n = query.in_adj_list[altered_q_node][ni];
-                    unordered_edge_set *eset = &(edge_domains.domains[edge_domains.pattern_in_adj_eids[altered_q_node][ni]]);
+                for (int ni = 0; ni < query.InAdjSizes[altered_q_node]; ni++)
+                {
+                    n = query.InAdjList[altered_q_node][ni];
+                    unordered_edge_set* eset = &(edge_domains.domains[edge_domains.pattern_in_adj_eids[altered_q_node][ni]]);
 
-                    for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end();) {
-                        if (node_domains[altered_q_node].get(eit->second) == false) {
+                    for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end();)
+                    {
+                        if (node_domains[altered_q_node].get(eit->second) == false)
+                        {
                             eset->erase(eit++);
                             erased = true;
-                        } else {
+                        }
+                        else
+                        {
                             ++eit;
                         }
                     }
                 }
 
-                for (int s = 0; s < query.nof_nodes; s++) {
+                for (int s = 0; s < query.NumOfVertex; s++)
+                {
 
-                    for (int ni = 0; ni < query.out_adj_sizes[s]; ni++) {
-                        n = query.out_adj_list[s][ni];
+                    for (int ni = 0; ni < query.OutAdjSizes[s]; ni++)
+                    {
+                        n = query.OutAdjList[s][ni];
 
                         std::set<int> source_set;
-                        unordered_edge_set *eset = &(edge_domains.domains[edge_domains.pattern_out_adj_eids[s][ni]]);
-                        for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end(); eit++) {
+                        unordered_edge_set* eset = &(edge_domains.domains[edge_domains.pattern_out_adj_eids[s][ni]]);
+                        for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end(); eit++)
+                        {
                             source_set.insert(eit->first);
                         }
 
-                        for (sbitset::iterator dit = node_domains[s].first_ones(); dit != node_domains[s].end(); dit.next_ones()) {
+                        for (FAmsbitset::iterator dit = node_domains[s].first_ones(); dit != node_domains[s].end(); dit.next_ones())
+                        {
 
-                            if (source_set.find(dit.first) == source_set.end()) {
+                            if (source_set.find(dit.first) == source_set.end())
+                            {
                                 node_domains[s].set(dit.first, false);
                                 erased = true;
                             }
                         }
                     }
 
-                    for (int ni = 0; ni < query.in_adj_sizes[s]; ni++) {
-                        n = query.in_adj_list[s][ni];
+                    for (int ni = 0; ni < query.InAdjSizes[s]; ni++)
+                    {
+                        n = query.InAdjList[s][ni];
 
                         std::set<int> source_set;
-                        unordered_edge_set *eset = &(edge_domains.domains[edge_domains.pattern_in_adj_eids[s][ni]]);
-                        for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end(); eit++) {
+                        unordered_edge_set* eset = &(edge_domains.domains[edge_domains.pattern_in_adj_eids[s][ni]]);
+                        for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end(); eit++)
+                        {
                             source_set.insert(eit->second);
                         }
 
-                        for (sbitset::iterator dit = node_domains[s].first_ones(); dit != node_domains[s].end(); dit.next_ones()) {
+                        for (FAmsbitset::iterator dit = node_domains[s].first_ones(); dit != node_domains[s].end(); dit.next_ones())
+                        {
 
-                            if (source_set.find(dit.first) == source_set.end()) {
+                            if (source_set.find(dit.first) == source_set.end())
+                            {
                                 node_domains[s].set(dit.first, false);
                                 erased = true;
                             }
@@ -367,35 +457,49 @@ class DomainReduction {
         return true;
     };
 
-    bool verify_path_dfs(int *q_dfs, int *q_dfs_adji, int q_level, int *c_dfs, bool *c_visited, int c_level, bool circle) {
-        if (c_level == q_level - 1) {
-            if (circle) {
+    bool verify_path_dfs(int* q_dfs, int* q_dfs_adji, int q_level, int* c_dfs, bool* c_visited, int c_level, bool circle)
+    {
+        if (c_level == q_level - 1)
+        {
+            if (circle)
+            {
                 unordered_edge_set eset = edge_domains.domains[edge_domains.pattern_out_adj_eids[q_dfs[c_level]][q_dfs_adji[c_level + 1]]];
-                for (unordered_edge_set::iterator eit = eset.begin(); eit != eset.end(); eit++) {
-                    if ((eit->first == c_dfs[c_level]) && (eit->second == c_dfs[0])) {
-                        return true;
-                    }
-                }
-                return false;
-            } else {
-                unordered_edge_set eset = edge_domains.domains[edge_domains.pattern_out_adj_eids[q_dfs[c_level]][q_dfs_adji[c_level + 1]]];
-                for (unordered_edge_set::iterator eit = eset.begin(); eit != eset.end(); eit++) {
-                    if ((eit->first == c_dfs[c_level]) && (!c_visited[eit->second])) {
+                for (unordered_edge_set::iterator eit = eset.begin(); eit != eset.end(); eit++)
+                {
+                    if ((eit->first == c_dfs[c_level]) && (eit->second == c_dfs[0]))
+                    {
                         return true;
                     }
                 }
                 return false;
             }
-        } else {
+            else
+            {
+                unordered_edge_set eset = edge_domains.domains[edge_domains.pattern_out_adj_eids[q_dfs[c_level]][q_dfs_adji[c_level + 1]]];
+                for (unordered_edge_set::iterator eit = eset.begin(); eit != eset.end(); eit++)
+                {
+                    if ((eit->first == c_dfs[c_level]) && (!c_visited[eit->second]))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+        else
+        {
             bool found = false;
             unordered_edge_set eset = edge_domains.domains[edge_domains.pattern_out_adj_eids[q_dfs[c_level]][q_dfs_adji[c_level + 1]]];
-            for (unordered_edge_set::iterator eit = eset.begin(); eit != eset.end(); eit++) {
-                if ((eit->first == c_dfs[c_level]) && (!c_visited[eit->second])) {
+            for (unordered_edge_set::iterator eit = eset.begin(); eit != eset.end(); eit++)
+            {
+                if ((eit->first == c_dfs[c_level]) && (!c_visited[eit->second]))
+                {
                     c_dfs[c_level + 1] = eit->second;
                     c_visited[eit->second] = true;
                     found |= verify_path_dfs(q_dfs, q_dfs_adji, q_level, c_dfs, c_visited, c_level + 1, circle);
                     c_visited[eit->second] = false;
-                    if (found) {
+                    if (found)
+                    {
                         break;
                     }
                 }
@@ -405,29 +509,35 @@ class DomainReduction {
         return false;
     };
 
-    void verify_path(int *q_dfs, int *q_dfs_adji, int q_level, bool circle) {
-        if (q_level > 1) {
-            int *c_dfs = new int[query.nof_nodes];
-            bool *c_visited = new bool[nof_target_nodes];
-            for (int i = 0; i < nof_target_nodes; i++) {
+    void verify_path(int* q_dfs, int* q_dfs_adji, int q_level, bool circle)
+    {
+        if (q_level > 1)
+        {
+            int* c_dfs = new int[query.NumOfVertex];
+            bool* c_visited = new bool[nof_target_nodes];
+            for (int i = 0; i < nof_target_nodes; i++)
+            {
                 c_visited[i] = false;
             }
 
             bool removed = false;
             int cnode;
-            for (sbitset::iterator dit = node_domains[q_dfs[0]].first_ones(); dit != node_domains[q_dfs[0]].end(); dit.next_ones()) {
+            for (FAmsbitset::iterator dit = node_domains[q_dfs[0]].first_ones(); dit != node_domains[q_dfs[0]].end(); dit.next_ones())
+            {
                 cnode = dit.first;
                 c_dfs[0] = cnode;
                 c_visited[cnode] = true;
 
-                if (!verify_path_dfs(q_dfs, q_dfs_adji, q_level, c_dfs, c_visited, 0, circle)) {
+                if (!verify_path_dfs(q_dfs, q_dfs_adji, q_level, c_dfs, c_visited, 0, circle))
+                {
                     node_domains[q_dfs[0]].set(cnode, false);
                     removed = true;
                 }
 
                 c_visited[cnode] = false;
             }
-            if (removed) {
+            if (removed)
+            {
                 refine_domains(q_dfs[0]);
             }
 
@@ -440,33 +550,44 @@ class DomainReduction {
     This is a temporary version which works for undirected graphs
     because only out edges are visited during the DFS visit.
     */
-    void reduce_by_paths_dfs(int *dfs, int *dfs_adji, bool *visited, int level, int max_lp) {
+    void reduce_by_paths_dfs(int* dfs, int* dfs_adji, bool* visited, int level, int max_lp)
+    {
         int n;
         int nof_p = 0;
-        for (int ni = 0; ni < query.out_adj_sizes[dfs[level]]; ni++) {
-            n = query.out_adj_list[dfs[level]][ni];
+        for (int ni = 0; ni < query.OutAdjSizes[dfs[level]]; ni++)
+        {
+            n = query.OutAdjList[dfs[level]][ni];
 
-            if ((!visited[n])) {
-                if (level == query.nof_nodes - 2) {
+            if ((!visited[n]))
+            {
+                if (level == query.NumOfVertex - 2)
+                {
                     nof_p++;
 
                     dfs[level + 1] = n;
                     dfs_adji[level + 1] = ni;
                     verify_path(dfs, dfs_adji, level + 1, false);
-                } else {
+                }
+                else
+                {
                     nof_p++;
                     dfs[level + 1] = n;
                     dfs_adji[level + 1] = ni;
 
-                    if (level == max_lp) {
+                    if (level == max_lp)
+                    {
                         verify_path(dfs, dfs_adji, level + 1, false);
-                    } else {
+                    }
+                    else
+                    {
                         visited[n] = true;
                         reduce_by_paths_dfs(dfs, dfs_adji, visited, level + 1, max_lp);
                         visited[n] = false;
                     }
                 }
-            } else if ((level > 0) && (n != dfs[level - 1]) && (n == dfs[0])) {
+            }
+            else if ((level > 0) && (n != dfs[level - 1]) && (n == dfs[0]))
+            {
                 nof_p++;
                 dfs[level + 1] = n;
                 dfs_adji[level + 1] = ni;
@@ -474,16 +595,19 @@ class DomainReduction {
                 verify_path(dfs, dfs_adji, level + 1, true);
             }
         }
-        if ((level > 0) && (nof_p == 0)) {
+        if ((level > 0) && (nof_p == 0))
+        {
             verify_path(dfs, dfs_adji, level - 1, false);
         }
     };
 
-    void reduce_by_paths(int starting_node, int max_lp) {
-        int *dfs = new int[query.nof_nodes];
-        int *dfs_adji = new int[query.nof_nodes];
-        bool *visited = new bool[query.nof_nodes];
-        for (int i = 0; i < query.nof_nodes; i++) {
+    void reduce_by_paths(int starting_node, int max_lp)
+    {
+        int* dfs = new int[query.NumOfVertex];
+        int* dfs_adji = new int[query.NumOfVertex];
+        bool* visited = new bool[query.NumOfVertex];
+        for (int i = 0; i < query.NumOfVertex; i++)
+        {
             visited[i] = false;
         }
         dfs[0] = starting_node;
@@ -497,50 +621,63 @@ class DomainReduction {
         delete[] dfs_adji;
     };
 
-    void reduce_by_paths(int max_lp) {
-        for (int i = 0; i < query.nof_nodes; i++) {
+    void reduce_by_paths(int max_lp)
+    {
+        for (int i = 0; i < query.NumOfVertex; i++)
+        {
             reduce_by_paths(i, max_lp);
         }
     };
 
-    void final_refinement() {
+    void final_refinement()
+    {
 
-        for (int n = 0; n < query.nof_nodes; n++) {
+        for (int n = 0; n < query.NumOfVertex; n++)
+        {
 
-            for (sbitset::iterator nnIT = node_domains[n].first_ones(); nnIT != node_domains[n].end(); nnIT.next_ones()) {
+            for (FAmsbitset::iterator nnIT = node_domains[n].first_ones(); nnIT != node_domains[n].end(); nnIT.next_ones())
+            {
                 int dn = nnIT.first;
 
                 bool found;
 
-                for (int ni = 0; ni < query.out_adj_sizes[n]; ni++) {
+                for (int ni = 0; ni < query.OutAdjSizes[n]; ni++)
+                {
                     found = false;
 
                     unordered_edge_set eset = edge_domains.domains[edge_domains.pattern_out_adj_eids[n][ni]];
-                    for (unordered_edge_set::iterator eit = eset.begin(); eit != eset.end(); eit++) {
-                        if (dn == eit->first) {
+                    for (unordered_edge_set::iterator eit = eset.begin(); eit != eset.end(); eit++)
+                    {
+                        if (dn == eit->first)
+                        {
                             found = true;
                             break;
                         }
                     }
 
-                    if (!found) {
+                    if (!found)
+                    {
                         node_domains[n].set(dn, false);
                         break;
                     }
                 }
 
-                for (int ni = 0; ni < query.in_adj_sizes[n]; ni++) {
+                for (int ni = 0; ni < query.InAdjSizes[n]; ni++)
+                {
                     found = false;
 
                     unordered_edge_set eset = edge_domains.domains[edge_domains.pattern_in_adj_eids[n][ni]];
-                    for (unordered_edge_set::iterator eit = eset.begin(); eit != eset.end(); eit++) {
-                        if (dn == eit->second) {
+                    for (unordered_edge_set::iterator eit = eset.begin(); eit != eset.end(); eit++)
+                    {
+                        if (dn == eit->second)
+                        {
                             found = true;
                             break;
                         }
                     }
 
-                    if (!found) {
+                    if (!found)
+                    {
                         node_domains[n].set(dn, false);
                         break;
                     }
@@ -550,48 +687,58 @@ class DomainReduction {
     };
 };
 
-void print_domains(Graph &query, Graph &target, sbitset *node_domains, EdgeDomains &edge_domains) {
-    std::cout << "nof query nodes " << query.nof_nodes << "\n";
-    for (int i = 0; i < query.nof_nodes; i++) {
+void print_domains(FAmGraph& query, FAmGraph& target, FAmsbitset* node_domains, FAmEdgeDomains& edge_domains)
+{
+    std::cout << "nof query nodes " << query.NumOfVertex << "\n";
+    for (int i = 0; i < query.NumOfVertex; i++)
+    {
         std::cout << "node domain " << i << ":" << node_domains[i].count_ones() << ": ";
-        for (sbitset::iterator it = node_domains[i].first_ones(); it != node_domains[i].end(); it.next_ones()) {
+        for (FAmsbitset::iterator it = node_domains[i].first_ones(); it != node_domains[i].end(); it.next_ones())
+        {
         std:
             cout << it.first << " ";
         }
         std::cout << "\n";
     }
-    for (int n = 0; n < query.nof_nodes; n++) {
-        for (int ni = 0; ni < query.out_adj_sizes[n]; ni++) {
+    for (int n = 0; n < query.NumOfVertex; n++)
+    {
+        for (int ni = 0; ni < query.OutAdjSizes[n]; ni++)
+        {
             int eid = edge_domains.pattern_out_adj_eids[n][ni];
-            std::cout << "edge domain: " << n << "-" << query.out_adj_list[n][ni] << ":eid " << eid << ":" << edge_domains.domains[eid].size() << "\n";
+            std::cout << "edge domain: " << n << "-" << query.OutAdjList[n][ni] << ":eid " << eid << ":" << edge_domains.domains[eid].size() << "\n";
         }
     }
 };
 
-void print_domains_extended(Graph &query, Graph &target, sbitset *node_domains, EdgeDomains &edge_domains) {
-    std::cout << "nof query nodes " << query.nof_nodes << "\n";
-    for (int i = 0; i < query.nof_nodes; i++) {
+void print_domains_extended(FAmGraph& query, FAmGraph& target, FAmsbitset* node_domains, FAmEdgeDomains& edge_domains)
+{
+    std::cout << "nof query nodes " << query.NumOfVertex << "\n";
+    for (int i = 0; i < query.NumOfVertex; i++)
+    {
         std::cout << "node domain " << i << ":" << node_domains[i].count_ones() << ": ";
-        for (sbitset::iterator it = node_domains[i].first_ones(); it != node_domains[i].end(); it.next_ones()) {
+        for (FAmsbitset::iterator it = node_domains[i].first_ones(); it != node_domains[i].end(); it.next_ones())
+        {
         std:
             cout << it.first << " ";
         }
         std::cout << "\n";
     }
-    for (int n = 0; n < query.nof_nodes; n++) {
-        for (int ni = 0; ni < query.out_adj_sizes[n]; ni++) {
+    for (int n = 0; n < query.NumOfVertex; n++)
+    {
+        for (int ni = 0; ni < query.OutAdjSizes[n]; ni++)
+        {
             int eid = edge_domains.pattern_out_adj_eids[n][ni];
-            std::cout << "edge domain: " << n << "-" << query.out_adj_list[n][ni] << ":eid " << eid << ":" << edge_domains.domains[eid].size() << "\n";
+            std::cout << "edge domain: " << n << "-" << query.OutAdjList[n][ni] << ":eid " << eid << ":" << edge_domains.domains[eid].size() << "\n";
 
-            unordered_edge_set *eset = &(edge_domains.domains[eid]);
+            unordered_edge_set* eset = &(edge_domains.domains[eid]);
 
-            for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end(); eit++) {
+            for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end(); eit++)
+            {
                 std::cout << "(" << (*eit).first << "," << (*eit).second << ")";
             }
             std::cout << "\n";
         }
     }
 };
-
 } // namespace rilib
 #endif /* DOMAINS_H_ */

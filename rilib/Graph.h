@@ -32,53 +32,32 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef GRAPH_H_
 #define GRAPH_H_
 
-namespace rilib {
-class Graph {
-  public:
-    int id;
-    int nof_nodes;
+namespace rilib
+{
+class FAmGraph
+{
+public:
+    int NumOfVertex;
 
-    void **nodes_attrs;
+    void** VertexAttributes;
 
-    int *out_adj_sizes;
-    int *in_adj_sizes;
+    int* OutAdjSizes;
+    int* InAdjSizes;
 
-    int **out_adj_list;
-    int **in_adj_list;
-    void ***out_adj_attrs;
+    int** OutAdjList;
+    int** InAdjList;
+    void*** OutAdjAttributes;
 
-    Graph() {
-        id = -1;
-        nof_nodes = 0;
-        nodes_attrs = NULL;
-        out_adj_sizes = NULL;
-        in_adj_sizes = NULL;
-        out_adj_list = NULL;
-        in_adj_list = NULL;
-        out_adj_attrs = NULL;
-    }
+    FAmGraph()
+    {
 
-    void print() {
-        std::cout << "| ReferenceGraph[" << id << "] nof nodes[" << nof_nodes << "]\n";
-        for (int i = 0; i < nof_nodes; i++) {
-            std::cout << "| node[" << i << "]\n";
-            std::cout << "| \tattribute_pointer[" << nodes_attrs[i] << "]\n";
-            std::cout << "| \tattribute[" << *((std::string *)(nodes_attrs[i])) << "]\n";
-            std::cout << "| \tout_adjs[" << out_adj_sizes[i] << "][";
-            for (int j = 0; j < out_adj_sizes[i]; j++) {
-                std::cout << out_adj_list[i][j];
-                if (j != out_adj_sizes[i] - 1)
-                    std::cout << ", ";
-            }
-            std::cout << "]\n";
-            std::cout << "| \tin_adjs[" << in_adj_sizes[i] << "][";
-            for (int j = 0; j < in_adj_sizes[i]; j++) {
-                std::cout << in_adj_list[i][j];
-                if (j != in_adj_sizes[i] - 1)
-                    std::cout << ", ";
-            }
-            std::cout << "]\n";
-        }
+        NumOfVertex = 0;
+        VertexAttributes = NULL;
+        OutAdjSizes = NULL;
+        InAdjSizes = NULL;
+        OutAdjList = NULL;
+        InAdjList = NULL;
+        OutAdjAttributes = NULL;
     }
 };
 } // namespace rilib

@@ -35,35 +35,43 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Graph.h"
 #include "sbitset.h"
 
-namespace rilib {
+namespace rilib
+{
+class FAmMaMaConstrFirstDs : public FAmMatchingMachine
+{
+    FAmsbitset* domains;
+    int* domains_size;
 
-class MaMaConstrFirstDs : public MatchingMachine {
-    sbitset *domains;
-    int *domains_size;
+public:
+    FAmMaMaConstrFirstDs(FAmGraph& query, FAmsbitset* _domains, int* _domains_size)
+        : FAmMatchingMachine(query)
+        , domains(_domains)
+        , domains_size(_domains_size)
+    {
+    }
 
-  public:
-    MaMaConstrFirstDs(Graph &query, sbitset *_domains, int *_domains_size) : MatchingMachine(query), domains(_domains), domains_size(_domains_size) {}
-
-    virtual void build(Graph &ssg) {
+    virtual void build(FAmGraph& ssg)
+    {
 
 #ifdef MDEBUG
         std::cout << "init mama...\n";
 #endif
 
         enum NodeFlag { NS_CORE, NS_CNEIGH, NS_UNV };
-        NodeFlag *node_flags = new NodeFlag[nof_sn];                  // indexed by node_id
-        int **weights = new int *[nof_sn];                            // indexed by node_id
-        int *t_parent_node = (int *)calloc(nof_sn, sizeof(int));      // indexed by node_id
-        MAMA_PARENTTYPE *t_parent_type = new MAMA_PARENTTYPE[nof_sn]; // indexed by node id
+        NodeFlag* node_flags = new NodeFlag[nof_sn]; // indexed by node_id
+        int** weights = new int*[nof_sn]; // indexed by node_id
+        int* t_parent_node = (int*)calloc(nof_sn, sizeof(int)); // indexed by node_id
+        MAMA_PARENTTYPE* t_parent_type = new MAMA_PARENTTYPE[nof_sn]; // indexed by node id
 
         int nof_single_domains = 0;
 
-        for (int i = 0; i < nof_sn; i++) {
+        for (int i = 0; i < nof_sn; i++)
+        {
             node_flags[i] = NS_UNV;
             weights[i] = new int[3];
             weights[i][0] = 0;
             weights[i][1] = 0;
-            weights[i][2] = ssg.out_adj_sizes[i] + ssg.in_adj_sizes[i];
+            weights[i][2] = ssg.OutAdjSizes[i] + ssg.InAdjSizes[i];
             t_parent_node[i] = -1;
             t_parent_type[i] = PARENTTYPE_NULL;
 
@@ -85,13 +93,16 @@ class MaMaConstrFirstDs : public MatchingMachine {
         std::cout << "single domains [" << nof_single_domains << "]...\n";
 #endif
 
-        if (nof_single_domains != 0) {
+        if (nof_single_domains != 0)
+        {
 
             nqueueR = nof_single_domains;
             // nqueueR = 0;
 
-            for (int n = 0; n < nof_sn; n++) {
-                if (domains_size[n] == 1) {
+            for (int n = 0; n < nof_sn; n++)
+            {
+                if (domains_size[n] == 1)
+                {
 
 #ifdef MDEBUG
                     std::cout << "nqueueR(" << nqueueR << ") node[" << n << "] si[" << si << "]\n";
@@ -105,13 +116,16 @@ class MaMaConstrFirstDs : public MatchingMachine {
                     // update nodes' flags & weights
                     node_flags[n] = NS_CORE;
                     nIT = 0;
-                    while (nIT < ssg.out_adj_sizes[n]) {
-                        ni = ssg.out_adj_list[n][nIT];
-                        if (ni != n && domains_size[ni] > 1) {
+                    while (nIT < ssg.OutAdjSizes[n])
+                    {
+                        ni = ssg.OutAdjList[n][nIT];
+                        if (ni != n && domains_size[ni] > 1)
+                        {
                             weights[ni][0]++;
                             weights[ni][1]--;
 
-                            if (node_flags[ni] == NS_UNV) {
+                            if (node_flags[ni] == NS_UNV)
+                            {
                                 node_flags[ni] = NS_CNEIGH;
                                 t_parent_node[ni] = n;
                                 t_parent_type[ni] = PARENTTYPE_OUT;
@@ -122,8 +136,9 @@ class MaMaConstrFirstDs : public MatchingMachine {
                                 nqueueR++;
 
                                 nnIT = 0;
-                                while (nnIT < ssg.out_adj_sizes[ni]) {
-                                    nni = ssg.out_adj_list[ni][nnIT];
+                                while (nnIT < ssg.OutAdjSizes[ni])
+                                {
+                                    nni = ssg.OutAdjList[ni][nnIT];
                                     weights[nni][1]++;
                                     nnIT++;
                                 }
@@ -133,13 +148,16 @@ class MaMaConstrFirstDs : public MatchingMachine {
                     }
 
                     nIT = 0;
-                    while (nIT < ssg.in_adj_sizes[n]) {
-                        ni = ssg.in_adj_list[n][nIT];
-                        if (ni != n && domains_size[ni] > 1) {
+                    while (nIT < ssg.InAdjSizes[n])
+                    {
+                        ni = ssg.InAdjList[n][nIT];
+                        if (ni != n && domains_size[ni] > 1)
+                        {
                             weights[ni][0]++;
                             weights[ni][1]--;
 
-                            if (node_flags[ni] == NS_UNV) {
+                            if (node_flags[ni] == NS_UNV)
+                            {
                                 node_flags[ni] = NS_CNEIGH;
                                 t_parent_node[ni] = n;
                                 t_parent_type[ni] = PARENTTYPE_IN;
@@ -148,8 +166,9 @@ class MaMaConstrFirstDs : public MatchingMachine {
                                 nqueueR++;
 
                                 nnIT = 0;
-                                while (nnIT < ssg.in_adj_sizes[ni]) {
-                                    nni = ssg.in_adj_list[ni][nnIT];
+                                while (nnIT < ssg.InAdjSizes[ni])
+                                {
+                                    nni = ssg.InAdjList[ni][nnIT];
                                     weights[nni][1]++;
                                     nnIT++;
                                 }
@@ -167,15 +186,19 @@ class MaMaConstrFirstDs : public MatchingMachine {
 #ifdef MDEBUG
         std::cout << "others...\n";
 #endif
-        while (si < nof_sn) {
+        while (si < nof_sn)
+        {
 
-            if (nqueueL == nqueueR) {
+            if (nqueueL == nqueueR)
+            {
                 // if queue is empty....
                 maxi = -1;
                 maxv = -1;
                 nIT = 0;
-                while (nIT < nof_sn) {
-                    if (node_flags[nIT] == NS_UNV && weights[nIT][2] > maxv) {
+                while (nIT < nof_sn)
+                {
+                    if (node_flags[nIT] == NS_UNV && weights[nIT][2] > maxv)
+                    {
                         maxv = weights[nIT][2];
                         maxi = nIT;
                     }
@@ -190,26 +213,33 @@ class MaMaConstrFirstDs : public MatchingMachine {
 
                 n = maxi;
                 nIT = 0;
-                while (nIT < ssg.out_adj_sizes[n]) {
-                    ni = ssg.out_adj_list[n][nIT];
-                    if (ni != n) {
+                while (nIT < ssg.OutAdjSizes[n])
+                {
+                    ni = ssg.OutAdjList[n][nIT];
+                    if (ni != n)
+                    {
                         weights[ni][1]++;
                     }
                     nIT++;
                 }
-                while (nIT < ssg.in_adj_sizes[n]) {
-                    ni = ssg.in_adj_list[n][nIT];
-                    if (ni != n) {
+                while (nIT < ssg.InAdjSizes[n])
+                {
+                    ni = ssg.InAdjList[n][nIT];
+                    if (ni != n)
+                    {
                         weights[ni][1]++;
                     }
                     nIT++;
                 }
             }
 
-            if (nqueueL != nqueueR - 1) {
+            if (nqueueL != nqueueR - 1)
+            {
                 maxi = nqueueL;
-                for (int mi = maxi + 1; mi < nqueueR; mi++) {
-                    if (wcompare(map_state_to_node[mi], map_state_to_node[maxi], weights) < 0) {
+                for (int mi = maxi + 1; mi < nqueueR; mi++)
+                {
+                    if (wcompare(map_state_to_node[mi], map_state_to_node[maxi], weights) < 0)
+                    {
                         maxi = mi;
                     }
                 }
@@ -228,13 +258,16 @@ class MaMaConstrFirstDs : public MatchingMachine {
             // update nodes' flags & weights
             node_flags[n] = NS_CORE;
             nIT = 0;
-            while (nIT < ssg.out_adj_sizes[n]) {
-                ni = ssg.out_adj_list[n][nIT];
-                if (ni != n) {
+            while (nIT < ssg.OutAdjSizes[n])
+            {
+                ni = ssg.OutAdjList[n][nIT];
+                if (ni != n)
+                {
                     weights[ni][0]++;
                     weights[ni][1]--;
 
-                    if (node_flags[ni] == NS_UNV) {
+                    if (node_flags[ni] == NS_UNV)
+                    {
                         node_flags[ni] = NS_CNEIGH;
                         t_parent_node[ni] = n;
                         t_parent_type[ni] = PARENTTYPE_OUT;
@@ -244,8 +277,9 @@ class MaMaConstrFirstDs : public MatchingMachine {
                         nqueueR++;
 
                         nnIT = 0;
-                        while (nnIT < ssg.out_adj_sizes[ni]) {
-                            nni = ssg.out_adj_list[ni][nnIT];
+                        while (nnIT < ssg.OutAdjSizes[ni])
+                        {
+                            nni = ssg.OutAdjList[ni][nnIT];
                             weights[nni][1]++;
                             nnIT++;
                         }
@@ -255,13 +289,16 @@ class MaMaConstrFirstDs : public MatchingMachine {
             }
 
             nIT = 0;
-            while (nIT < ssg.in_adj_sizes[n]) {
-                ni = ssg.in_adj_list[n][nIT];
-                if (ni != n) {
+            while (nIT < ssg.InAdjSizes[n])
+            {
+                ni = ssg.InAdjList[n][nIT];
+                if (ni != n)
+                {
                     weights[ni][0]++;
                     weights[ni][1]--;
 
-                    if (node_flags[ni] == NS_UNV) {
+                    if (node_flags[ni] == NS_UNV)
+                    {
                         node_flags[ni] = NS_CNEIGH;
                         t_parent_node[ni] = n;
                         t_parent_type[ni] = PARENTTYPE_IN;
@@ -270,8 +307,9 @@ class MaMaConstrFirstDs : public MatchingMachine {
                         nqueueR++;
 
                         nnIT = 0;
-                        while (nnIT < ssg.in_adj_sizes[ni]) {
-                            nni = ssg.in_adj_list[ni][nnIT];
+                        while (nnIT < ssg.InAdjSizes[ni])
+                        {
+                            nni = ssg.InAdjList[ni][nnIT];
                             weights[nni][1]++;
                             nnIT++;
                         }
@@ -284,7 +322,8 @@ class MaMaConstrFirstDs : public MatchingMachine {
         }
 
         int e_count, o_e_count, i_e_count, nn;
-        for (int si = 0; si < nof_sn; si++) {
+        for (int si = 0; si < nof_sn; si++)
+        {
 
             n = map_state_to_node[si];
 
@@ -295,28 +334,34 @@ class MaMaConstrFirstDs : public MatchingMachine {
             parent_type[si] = t_parent_type[n];
 
 #ifdef MDEBUG
-            if (parent_type[si] != PARENTTYPE_NULL) {
+            if (parent_type[si] != PARENTTYPE_NULL)
+            {
                 std::cout << "P:" << si << " " << n << " " << parent_state[si] << " " << map_state_to_node[parent_state[si]];
                 if (parent_type[si] == PARENTTYPE_OUT)
                     std::cout << " out\n";
                 else
                     std::cout << " in\n";
-            } else {
-                std::cout << "P:" << si << " " << n << " " << parent_state[si] << " NULL\n";
-                ;
+            }
+            else
+            {
+                std::cout << "P:" << si << " " << n << " " << parent_state[si] << " NULL\n";;
             }
 #endif
             e_count = 0;
             o_e_count = 0;
-            for (int i = 0; i < ssg.out_adj_sizes[n]; i++) {
-                if (map_node_to_state[ssg.out_adj_list[n][i]] < si) {
+            for (int i = 0; i < ssg.OutAdjSizes[n]; i++)
+            {
+                if (map_node_to_state[ssg.OutAdjList[n][i]] < si)
+                {
                     e_count++;
                     o_e_count++;
                 }
             }
             i_e_count = 0;
-            for (int i = 0; i < ssg.in_adj_sizes[n]; i++) {
-                if (map_node_to_state[ssg.in_adj_list[n][i]] < si) {
+            for (int i = 0; i < ssg.InAdjSizes[n]; i++)
+            {
+                if (map_node_to_state[ssg.InAdjList[n][i]] < si)
+                {
                     e_count++;
                     i_e_count++;
                 }
@@ -328,21 +373,26 @@ class MaMaConstrFirstDs : public MatchingMachine {
 
             edges[si] = new MaMaEdge[e_count];
 
-            if (e_count > 0) {
+            if (e_count > 0)
+            {
 
                 e_count = 0;
 
-                for (int i = 0; i < ssg.out_adj_sizes[n]; i++) {
-                    if (map_node_to_state[ssg.out_adj_list[n][i]] < si) {
+                for (int i = 0; i < ssg.OutAdjSizes[n]; i++)
+                {
+                    if (map_node_to_state[ssg.OutAdjList[n][i]] < si)
+                    {
                         edges[si][e_count].source = map_node_to_state[n];
-                        edges[si][e_count].target = map_node_to_state[ssg.out_adj_list[n][i]];
+                        edges[si][e_count].target = map_node_to_state[ssg.OutAdjList[n][i]];
                         e_count++;
                     }
                 }
-                for (int i = 0; i < ssg.in_adj_sizes[n]; i++) {
-                    if (map_node_to_state[ssg.in_adj_list[n][i]] < si) {
+                for (int i = 0; i < ssg.InAdjSizes[n]; i++)
+                {
+                    if (map_node_to_state[ssg.InAdjList[n][i]] < si)
+                    {
                         edges[si][e_count].target = map_node_to_state[n];
-                        edges[si][e_count].source = map_node_to_state[ssg.in_adj_list[n][i]];
+                        edges[si][e_count].source = map_node_to_state[ssg.InAdjList[n][i]];
                         e_count++;
                     }
                 }
@@ -357,17 +407,19 @@ class MaMaConstrFirstDs : public MatchingMachine {
         delete[] t_parent_type;
     }
 
-  private:
-    int wcompare(int i, int j, int **weights) {
-        for (int w = 0; w < 3; w++) {
-            if (weights[i][w] != weights[j][w]) {
+private:
+    int wcompare(int i, int j, int** weights)
+    {
+        for (int w = 0; w < 3; w++)
+        {
+            if (weights[i][w] != weights[j][w])
+            {
                 return weights[j][w] - weights[i][w];
             }
         }
         return i - j;
     }
 };
-
 } // namespace rilib
 
 #endif /* MAMACONSTRFIRST_H_ */

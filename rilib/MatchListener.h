@@ -35,49 +35,78 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // #include "Graph.h"
 
-namespace rilib {
-
-class MatchListener {
-  public:
+namespace rilib
+{
+class FAmMatchListener
+{
+public:
     long matchcount;
-    MatchListener() { matchcount = 0; }
-    virtual ~MatchListener(){};
-    virtual void match(int n, int *qIDs, int *rIDs) = 0;
-    virtual void match_multiple(int n, int *qIDs, int *rIDs, int si, std::set<int> *leaf_domains) = 0;
+
+    FAmMatchListener()
+    {
+        matchcount = 0;
+    }
+
+    virtual ~FAmMatchListener()
+    {
+    };
+    virtual void match(int n, int* qIDs, int* rIDs) = 0;
+    virtual void match_multiple(int n, int* qIDs, int* rIDs, int si, std::set<int>* leaf_domains) = 0;
 };
 
-class EmptyMatchListener : public MatchListener {
-  public:
-    EmptyMatchListener() : MatchListener() {}
-    virtual void match(int n, int *qIDs, int *rIDs) { matchcount++; };
+class FAmEmptyMatchListener : public FAmMatchListener
+{
+public:
+    FAmEmptyMatchListener()
+        : FAmMatchListener()
+    {
+    }
 
-    virtual void match_multiple(int n, int *qIDs, int *rIDs, int si, std::set<int> *leaf_domains){
+    virtual void match(int n, int* qIDs, int* rIDs)
+    {
+        matchcount++;
+    };
+
+    virtual void match_multiple(int n, int* qIDs, int* rIDs, int si, std::set<int>* leaf_domains)
+    {
         // TODO
     };
 };
 
-class ConsoleMatchListener : public MatchListener {
-  public:
-    ConsoleMatchListener() : MatchListener() {}
-    virtual void match(int n, int *qIDs, int *rIDs) {
+class FAmConsoleMatchListener : public FAmMatchListener
+{
+public:
+    FAmConsoleMatchListener()
+        : FAmMatchListener()
+    {
+    }
+
+    virtual void match(int n, int* qIDs, int* rIDs)
+    {
         matchcount++;
         std::cout << "M:{";
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < n; i++)
+        {
             std::cout << "(" << qIDs[i] << "," << rIDs[i] << ")";
         }
         std::cout << "}\n";
     }
-    virtual void match_multiple(int n, int *qIDs, int *rIDs, int si, std::set<int> *leaf_domains) {
+
+    virtual void match_multiple(int n, int* qIDs, int* rIDs, int si, std::set<int>* leaf_domains)
+    {
         matchcount++;
         std::cout << "M:{";
-        for (int i = 0; i < si; i++) {
+        for (int i = 0; i < si; i++)
+        {
             std::cout << "(" << qIDs[i] << "," << rIDs[i] << ")";
         }
-        for (int i = si; i < n; i++) {
+        for (int i = si; i < n; i++)
+        {
             std::cout << "(" << qIDs[i] << ",[";
             int nof = leaf_domains[i - si].size();
             int ci = 0;
-            for (auto it = leaf_domains[i - si].begin(); it != leaf_domains[i - si].end(); it++) {
+            for (auto it = leaf_domains[i - si].begin(); it != leaf_domains[i - si].end(); it++)
+            {
                 std::cout << (*it);
                 if (ci < nof - 1)
                     std::cout << ",";
@@ -88,7 +117,6 @@ class ConsoleMatchListener : public MatchListener {
         std::cout << "}\n";
     };
 };
-
 } // namespace rilib
 
 #endif /* MATCHLISTENER_H_ */

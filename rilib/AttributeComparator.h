@@ -40,23 +40,23 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace rilib {
 
-class AttributeComparator {
+class FAmAttributeComparator {
   public:
-    virtual ~AttributeComparator(){};
+    virtual ~FAmAttributeComparator(){};
     virtual bool compare(void *attr1, void *attr2) = 0;
     virtual int compareint(void *attr1, void *attr2) = 0;
 };
 
-class DefaultAttrComparator : public AttributeComparator {
+class FAmDefaultAttrComparator : public FAmAttributeComparator {
   public:
-    DefaultAttrComparator(){};
+    FAmDefaultAttrComparator(){};
     virtual bool compare(void *attr1, void *attr2) { return true; };
     virtual int compareint(void *attr1, void *attr2) { return 0; };
 };
 
-class StringAttrComparator : public AttributeComparator {
+class FAmStringAttrComparator : public FAmAttributeComparator {
   public:
-    StringAttrComparator(){};
+    FAmStringAttrComparator(){};
     virtual bool compare(void *attr1, void *attr2) {
         std::string *a = (std::string *)attr1;
         std::string *b = (std::string *)attr2;
@@ -69,9 +69,9 @@ class StringAttrComparator : public AttributeComparator {
     };
 };
 
-class IntAttrComparator : public AttributeComparator {
+class FAmIntAttrComparator : public FAmAttributeComparator {
   public:
-    IntAttrComparator(){};
+    FAmIntAttrComparator(){};
     virtual bool compare(void *attr1, void *attr2) {
         int *a = (int *)attr1;
         int *b = (int *)attr2;

@@ -51,12 +51,12 @@ enum GRAPH_FILE_TYPE { GFT_GFU, GFT_GFD, GFT_EGFU, GFT_EGFD, GFT_VFU, GFT_LAD, G
 
 #define STR_READ_LENGTH 256
 
-int read_gfu(const char *fileName, FILE *fd, Graph *graph);
-int read_gfd(const char *fileName, FILE *fd, Graph *graph);
-int read_vfu(const char *fileName, FILE *fd, Graph *graph);
-int read_lad(const char *fileName, FILE *fd, Graph *graph);
-int read_egfu(const char *fileName, FILE *fd, Graph *graph);
-int read_egfd(const char *fileName, FILE *fd, Graph *graph);
+int read_gfu(const char *fileName, FILE *fd, FAmGraph *graph);
+int read_gfd(const char *fileName, FILE *fd, FAmGraph *graph);
+int read_vfu(const char *fileName, FILE *fd, FAmGraph *graph);
+int read_lad(const char *fileName, FILE *fd, FAmGraph *graph);
+int read_egfu(const char *fileName, FILE *fd, FAmGraph *graph);
+int read_egfd(const char *fileName, FILE *fd, FAmGraph *graph);
 
 FILE *open_file(const char *filename, enum GRAPH_FILE_TYPE type) {
     FILE *fd;
@@ -75,7 +75,7 @@ FILE *open_file(const char *filename, enum GRAPH_FILE_TYPE type) {
     return fd;
 };
 
-int read_dbgraph(const char *filename, FILE *fd, Graph *g, enum GRAPH_FILE_TYPE type) {
+int read_dbgraph(const char *filename, FILE *fd, FAmGraph *g, enum GRAPH_FILE_TYPE type) {
     int ret = 0;
     switch (type) {
     case GFT_GFU:
@@ -101,7 +101,7 @@ int read_dbgraph(const char *filename, FILE *fd, Graph *g, enum GRAPH_FILE_TYPE 
     return ret;
 };
 
-int read_graph(const char *filename, Graph *g, enum GRAPH_FILE_TYPE type) {
+int read_graph(const char *filename, FAmGraph *g, enum GRAPH_FILE_TYPE type) {
     FILE *fd = open_file(filename, type);
     if (fd == NULL) {
         printf("ERROR: Cannot open input file %s\n", filename);
@@ -139,7 +139,7 @@ struct gr_neighs_t {
     gr_neighs_t *next;
 };
 
-int read_gfu(const char *fileName, FILE *fd, Graph *graph) {
+int read_gfu(const char *fileName, FILE *fd, FAmGraph *graph) {
     TIMEHANDLE time_s;
     double time_e;
 
@@ -150,27 +150,27 @@ int read_gfu(const char *fileName, FILE *fd, Graph *graph) {
     if (fscanf(fd, "%s", str) != 1) { // #graphname
         return -1;
     }
-    if (fscanf(fd, "%d", &(graph->nof_nodes)) != 1) { // nof nodes
+    if (fscanf(fd, "%d", &(graph->NumOfVertex)) != 1) { // nof nodes
         return -1;
     }
 
     // node labels
-    graph->nodes_attrs = (void **)malloc(graph->nof_nodes * sizeof(void *));
+    graph->VertexAttributes = (void **)malloc(graph->NumOfVertex * sizeof(void *));
     char *label = new char[STR_READ_LENGTH];
-    for (i = 0; i < graph->nof_nodes; i++) {
+    for (i = 0; i < graph->NumOfVertex; i++) {
         if (fscanf(fd, "%s", label) != 1) {
             return -1;
         }
-        graph->nodes_attrs[i] = new std::string(label);
+        graph->VertexAttributes[i] = new std::string(label);
     }
 
     // edges
-    graph->out_adj_sizes = (int *)calloc(graph->nof_nodes, sizeof(int));
-    graph->in_adj_sizes = (int *)calloc(graph->nof_nodes, sizeof(int));
+    graph->OutAdjSizes = (int *)calloc(graph->NumOfVertex, sizeof(int));
+    graph->InAdjSizes = (int *)calloc(graph->NumOfVertex, sizeof(int));
 
-    gr_neighs_t **ns_o = (gr_neighs_t **)malloc(graph->nof_nodes * sizeof(gr_neighs_t));
-    gr_neighs_t **ns_i = (gr_neighs_t **)malloc(graph->nof_nodes * sizeof(gr_neighs_t));
-    for (i = 0; i < graph->nof_nodes; i++) {
+    gr_neighs_t **ns_o = (gr_neighs_t **)malloc(graph->NumOfVertex * sizeof(gr_neighs_t));
+    gr_neighs_t **ns_i = (gr_neighs_t **)malloc(graph->NumOfVertex * sizeof(gr_neighs_t));
+    for (i = 0; i < graph->NumOfVertex; i++) {
         ns_o[i] = NULL;
         ns_i[i] = NULL;
     }
@@ -188,8 +188,8 @@ int read_gfu(const char *fileName, FILE *fd, Graph *graph) {
             return -1;
         }
 
-        graph->out_adj_sizes[es]++;
-        graph->in_adj_sizes[et]++;
+        graph->OutAdjSizes[es]++;
+        graph->InAdjSizes[et]++;
 
         if (ns_o[es] == NULL) {
             ns_o[es] = (gr_neighs_t *)malloc(sizeof(gr_neighs_t));
@@ -202,8 +202,8 @@ int read_gfu(const char *fileName, FILE *fd, Graph *graph) {
             ns_o[es] = n;
         }
 
-        graph->out_adj_sizes[et]++;
-        graph->in_adj_sizes[es]++;
+        graph->OutAdjSizes[et]++;
+        graph->InAdjSizes[es]++;
 
         if (ns_o[et] == NULL) {
             ns_o[et] = (gr_neighs_t *)malloc(sizeof(gr_neighs_t));
@@ -220,25 +220,25 @@ int read_gfu(const char *fileName, FILE *fd, Graph *graph) {
     std::cout << ":rtime: from file " << time_e << "\n";
     time_s = start_time();
 
-    graph->out_adj_list = (int **)malloc(graph->nof_nodes * sizeof(int *));
-    graph->in_adj_list = (int **)malloc(graph->nof_nodes * sizeof(int *));
-    graph->out_adj_attrs = (void ***)malloc(graph->nof_nodes * sizeof(void **));
+    graph->OutAdjList = (int **)malloc(graph->NumOfVertex * sizeof(int *));
+    graph->InAdjList = (int **)malloc(graph->NumOfVertex * sizeof(int *));
+    graph->OutAdjAttributes = (void ***)malloc(graph->NumOfVertex * sizeof(void **));
 
-    int *ink = (int *)calloc(graph->nof_nodes, sizeof(int));
-    for (i = 0; i < graph->nof_nodes; i++) {
-        graph->in_adj_list[i] = (int *)calloc(graph->in_adj_sizes[i], sizeof(int));
+    int *ink = (int *)calloc(graph->NumOfVertex, sizeof(int));
+    for (i = 0; i < graph->NumOfVertex; i++) {
+        graph->InAdjList[i] = (int *)calloc(graph->InAdjSizes[i], sizeof(int));
     }
-    for (i = 0; i < graph->nof_nodes; i++) {
+    for (i = 0; i < graph->NumOfVertex; i++) {
         // reading degree and successors of vertex i
-        graph->out_adj_list[i] = (int *)calloc(graph->out_adj_sizes[i], sizeof(int));
-        graph->out_adj_attrs[i] = (void **)malloc(graph->out_adj_sizes[i] * sizeof(void *));
+        graph->OutAdjList[i] = (int *)calloc(graph->OutAdjSizes[i], sizeof(int));
+        graph->OutAdjAttributes[i] = (void **)malloc(graph->OutAdjSizes[i] * sizeof(void *));
 
         gr_neighs_t *n = ns_o[i];
-        for (j = 0; j < graph->out_adj_sizes[i]; j++) {
-            graph->out_adj_list[i][j] = n->nid;
-            graph->out_adj_attrs[i][j] = NULL;
+        for (j = 0; j < graph->OutAdjSizes[i]; j++) {
+            graph->OutAdjList[i][j] = n->nid;
+            graph->OutAdjAttributes[i][j] = NULL;
 
-            graph->in_adj_list[n->nid][ink[n->nid]] = i;
+            graph->InAdjList[n->nid][ink[n->nid]] = i;
 
             ink[n->nid]++;
 
@@ -250,11 +250,11 @@ int read_gfu(const char *fileName, FILE *fd, Graph *graph) {
     std::cout << ":rtime: data structures " << time_e << "\n";
     time_s = start_time();
 
-    for (int i = 0; i < graph->nof_nodes; i++) {
+    for (int i = 0; i < graph->NumOfVertex; i++) {
         if (ns_o[i] != NULL) {
             gr_neighs_t *p = NULL;
             gr_neighs_t *n = ns_o[i];
-            for (j = 0; j < graph->out_adj_sizes[i]; j++) {
+            for (j = 0; j < graph->OutAdjSizes[i]; j++) {
                 if (p != NULL)
                     free(p);
                 p = n;
@@ -267,7 +267,7 @@ int read_gfu(const char *fileName, FILE *fd, Graph *graph) {
         if (ns_i[i] != NULL) {
             gr_neighs_t *p = NULL;
             gr_neighs_t *n = ns_i[i];
-            for (j = 0; j < graph->out_adj_sizes[i]; j++) {
+            for (j = 0; j < graph->OutAdjSizes[i]; j++) {
                 if (p != NULL)
                     free(p);
                 p = n;
@@ -284,33 +284,33 @@ int read_gfu(const char *fileName, FILE *fd, Graph *graph) {
     return 0;
 };
 
-int read_gfd(const char *fileName, FILE *fd, Graph *graph) {
+int read_gfd(const char *fileName, FILE *fd, FAmGraph *graph) {
     char str[STR_READ_LENGTH];
     int i, j;
 
     if (fscanf(fd, "%s", str) != 1) { // #graphname
         return -1;
     }
-    if (fscanf(fd, "%d", &(graph->nof_nodes)) != 1) { // nof nodes
+    if (fscanf(fd, "%d", &(graph->NumOfVertex)) != 1) { // nof nodes
         return -1;
     }
     // node labels
-    graph->nodes_attrs = (void **)malloc(graph->nof_nodes * sizeof(void *));
+    graph->VertexAttributes = (void **)malloc(graph->NumOfVertex * sizeof(void *));
     char *label = new char[STR_READ_LENGTH];
-    for (i = 0; i < graph->nof_nodes; i++) {
+    for (i = 0; i < graph->NumOfVertex; i++) {
         if (fscanf(fd, "%s", label) != 1) {
             return -1;
         }
-        graph->nodes_attrs[i] = new std::string(label);
+        graph->VertexAttributes[i] = new std::string(label);
     }
 
     // edges
-    graph->out_adj_sizes = (int *)calloc(graph->nof_nodes, sizeof(int));
-    graph->in_adj_sizes = (int *)calloc(graph->nof_nodes, sizeof(int));
+    graph->OutAdjSizes = (int *)calloc(graph->NumOfVertex, sizeof(int));
+    graph->InAdjSizes = (int *)calloc(graph->NumOfVertex, sizeof(int));
 
-    gr_neighs_t **ns_o = (gr_neighs_t **)malloc(graph->nof_nodes * sizeof(gr_neighs_t));
-    gr_neighs_t **ns_i = (gr_neighs_t **)malloc(graph->nof_nodes * sizeof(gr_neighs_t));
-    for (i = 0; i < graph->nof_nodes; i++) {
+    gr_neighs_t **ns_o = (gr_neighs_t **)malloc(graph->NumOfVertex * sizeof(gr_neighs_t));
+    gr_neighs_t **ns_i = (gr_neighs_t **)malloc(graph->NumOfVertex * sizeof(gr_neighs_t));
+    for (i = 0; i < graph->NumOfVertex; i++) {
         ns_o[i] = NULL;
         ns_i[i] = NULL;
     }
@@ -326,8 +326,8 @@ int read_gfd(const char *fileName, FILE *fd, Graph *graph) {
         if (fscanf(fd, "%d", &et) != 1) { // target node
             return -1;
         }
-        graph->out_adj_sizes[es]++;
-        graph->in_adj_sizes[et]++;
+        graph->OutAdjSizes[es]++;
+        graph->InAdjSizes[et]++;
 
         if (ns_o[es] == NULL) {
             ns_o[es] = (gr_neighs_t *)malloc(sizeof(gr_neighs_t));
@@ -341,23 +341,23 @@ int read_gfd(const char *fileName, FILE *fd, Graph *graph) {
         }
     }
 
-    graph->out_adj_list = (int **)malloc(graph->nof_nodes * sizeof(int *));
-    graph->in_adj_list = (int **)malloc(graph->nof_nodes * sizeof(int *));
-    graph->out_adj_attrs = (void ***)malloc(graph->nof_nodes * sizeof(void **));
-    int *ink = (int *)calloc(graph->nof_nodes, sizeof(int));
-    for (i = 0; i < graph->nof_nodes; i++)
-        graph->in_adj_list[i] = (int *)calloc(graph->in_adj_sizes[i], sizeof(int));
-    for (i = 0; i < graph->nof_nodes; i++) {
+    graph->OutAdjList = (int **)malloc(graph->NumOfVertex * sizeof(int *));
+    graph->InAdjList = (int **)malloc(graph->NumOfVertex * sizeof(int *));
+    graph->OutAdjAttributes = (void ***)malloc(graph->NumOfVertex * sizeof(void **));
+    int *ink = (int *)calloc(graph->NumOfVertex, sizeof(int));
+    for (i = 0; i < graph->NumOfVertex; i++)
+        graph->InAdjList[i] = (int *)calloc(graph->InAdjSizes[i], sizeof(int));
+    for (i = 0; i < graph->NumOfVertex; i++) {
         // reading degree and successors of vertex i
-        graph->out_adj_list[i] = (int *)calloc(graph->out_adj_sizes[i], sizeof(int));
-        graph->out_adj_attrs[i] = (void **)malloc(graph->out_adj_sizes[i] * sizeof(void *));
+        graph->OutAdjList[i] = (int *)calloc(graph->OutAdjSizes[i], sizeof(int));
+        graph->OutAdjAttributes[i] = (void **)malloc(graph->OutAdjSizes[i] * sizeof(void *));
 
         gr_neighs_t *n = ns_o[i];
-        for (j = 0; j < graph->out_adj_sizes[i]; j++) {
-            graph->out_adj_list[i][j] = n->nid;
-            graph->out_adj_attrs[i][j] = NULL;
+        for (j = 0; j < graph->OutAdjSizes[i]; j++) {
+            graph->OutAdjList[i][j] = n->nid;
+            graph->OutAdjAttributes[i][j] = NULL;
 
-            graph->in_adj_list[n->nid][ink[n->nid]] = i;
+            graph->InAdjList[n->nid][ink[n->nid]] = i;
             ink[n->nid]++;
 
             n = n->next;
@@ -367,9 +367,9 @@ int read_gfd(const char *fileName, FILE *fd, Graph *graph) {
     return 0;
 };
 
-int read_vfu(const char *fileName, FILE *fd, Graph *graph) { return 0; };
+int read_vfu(const char *fileName, FILE *fd, FAmGraph *graph) { return 0; };
 
-int read_lad(const char *fileName, FILE *fd, Graph *graph) { return 0; };
+int read_lad(const char *fileName, FILE *fd, FAmGraph *graph) { return 0; };
 
 struct egr_neighs_t {
   public:
@@ -378,34 +378,34 @@ struct egr_neighs_t {
     std::string *label;
 };
 
-int read_egfu(const char *fileName, FILE *fd, Graph *graph) {
+int read_egfu(const char *fileName, FILE *fd, FAmGraph *graph) {
     char str[STR_READ_LENGTH];
     int i, j;
 
     if (fscanf(fd, "%s", str) != 1) { // #graphname
         return -1;
     }
-    if (fscanf(fd, "%d", &(graph->nof_nodes)) != 1) { // nof nodes
+    if (fscanf(fd, "%d", &(graph->NumOfVertex)) != 1) { // nof nodes
         return -1;
     }
 
     // node labels
-    graph->nodes_attrs = (void **)malloc(graph->nof_nodes * sizeof(void *));
+    graph->VertexAttributes = (void **)malloc(graph->NumOfVertex * sizeof(void *));
     char *label = new char[STR_READ_LENGTH];
-    for (i = 0; i < graph->nof_nodes; i++) {
+    for (i = 0; i < graph->NumOfVertex; i++) {
         if (fscanf(fd, "%s", label) != 1) {
             return -1;
         }
-        graph->nodes_attrs[i] = new std::string(label);
+        graph->VertexAttributes[i] = new std::string(label);
     }
 
     // edges
-    graph->out_adj_sizes = (int *)calloc(graph->nof_nodes, sizeof(int));
-    graph->in_adj_sizes = (int *)calloc(graph->nof_nodes, sizeof(int));
+    graph->OutAdjSizes = (int *)calloc(graph->NumOfVertex, sizeof(int));
+    graph->InAdjSizes = (int *)calloc(graph->NumOfVertex, sizeof(int));
 
-    egr_neighs_t **ns_o = (egr_neighs_t **)malloc(graph->nof_nodes * sizeof(egr_neighs_t));
-    egr_neighs_t **ns_i = (egr_neighs_t **)malloc(graph->nof_nodes * sizeof(egr_neighs_t));
-    for (i = 0; i < graph->nof_nodes; i++) {
+    egr_neighs_t **ns_o = (egr_neighs_t **)malloc(graph->NumOfVertex * sizeof(egr_neighs_t));
+    egr_neighs_t **ns_i = (egr_neighs_t **)malloc(graph->NumOfVertex * sizeof(egr_neighs_t));
+    for (i = 0; i < graph->NumOfVertex; i++) {
         ns_o[i] = NULL;
         ns_i[i] = NULL;
     }
@@ -426,8 +426,8 @@ int read_egfu(const char *fileName, FILE *fd, Graph *graph) {
             return -1;
         }
 
-        graph->out_adj_sizes[es]++;
-        graph->in_adj_sizes[et]++;
+        graph->OutAdjSizes[es]++;
+        graph->InAdjSizes[et]++;
 
         if (ns_o[es] == NULL) {
             ns_o[es] = (egr_neighs_t *)malloc(sizeof(egr_neighs_t));
@@ -442,8 +442,8 @@ int read_egfu(const char *fileName, FILE *fd, Graph *graph) {
             ns_o[es] = n;
         }
 
-        graph->out_adj_sizes[et]++;
-        graph->in_adj_sizes[es]++;
+        graph->OutAdjSizes[et]++;
+        graph->InAdjSizes[es]++;
 
         if (ns_o[et] == NULL) {
             ns_o[et] = (egr_neighs_t *)malloc(sizeof(egr_neighs_t));
@@ -459,25 +459,25 @@ int read_egfu(const char *fileName, FILE *fd, Graph *graph) {
         }
     }
 
-    graph->out_adj_list = (int **)malloc(graph->nof_nodes * sizeof(int *));
-    graph->in_adj_list = (int **)malloc(graph->nof_nodes * sizeof(int *));
-    graph->out_adj_attrs = (void ***)malloc(graph->nof_nodes * sizeof(void **));
+    graph->OutAdjList = (int **)malloc(graph->NumOfVertex * sizeof(int *));
+    graph->InAdjList = (int **)malloc(graph->NumOfVertex * sizeof(int *));
+    graph->OutAdjAttributes = (void ***)malloc(graph->NumOfVertex * sizeof(void **));
 
-    int *ink = (int *)calloc(graph->nof_nodes, sizeof(int));
-    for (i = 0; i < graph->nof_nodes; i++) {
-        graph->in_adj_list[i] = (int *)calloc(graph->in_adj_sizes[i], sizeof(int));
+    int *ink = (int *)calloc(graph->NumOfVertex, sizeof(int));
+    for (i = 0; i < graph->NumOfVertex; i++) {
+        graph->InAdjList[i] = (int *)calloc(graph->InAdjSizes[i], sizeof(int));
     }
-    for (i = 0; i < graph->nof_nodes; i++) {
+    for (i = 0; i < graph->NumOfVertex; i++) {
         // reading degree and successors of vertex i
-        graph->out_adj_list[i] = (int *)calloc(graph->out_adj_sizes[i], sizeof(int));
-        graph->out_adj_attrs[i] = (void **)malloc(graph->out_adj_sizes[i] * sizeof(void *));
+        graph->OutAdjList[i] = (int *)calloc(graph->OutAdjSizes[i], sizeof(int));
+        graph->OutAdjAttributes[i] = (void **)malloc(graph->OutAdjSizes[i] * sizeof(void *));
 
         egr_neighs_t *n = ns_o[i];
-        for (j = 0; j < graph->out_adj_sizes[i]; j++) {
-            graph->out_adj_list[i][j] = n->nid;
-            graph->out_adj_attrs[i][j] = n->label;
+        for (j = 0; j < graph->OutAdjSizes[i]; j++) {
+            graph->OutAdjList[i][j] = n->nid;
+            graph->OutAdjAttributes[i][j] = n->label;
 
-            graph->in_adj_list[n->nid][ink[n->nid]] = i;
+            graph->InAdjList[n->nid][ink[n->nid]] = i;
 
             ink[n->nid]++;
 
@@ -487,11 +487,11 @@ int read_egfu(const char *fileName, FILE *fd, Graph *graph) {
 
     //	graph->sort_edges();
 
-    for (int i = 0; i < graph->nof_nodes; i++) {
+    for (int i = 0; i < graph->NumOfVertex; i++) {
         if (ns_o[i] != NULL) {
             egr_neighs_t *p = NULL;
             egr_neighs_t *n = ns_o[i];
-            for (j = 0; j < graph->out_adj_sizes[i]; j++) {
+            for (j = 0; j < graph->OutAdjSizes[i]; j++) {
                 if (p != NULL)
                     free(p);
                 p = n;
@@ -504,7 +504,7 @@ int read_egfu(const char *fileName, FILE *fd, Graph *graph) {
         if (ns_i[i] != NULL) {
             egr_neighs_t *p = NULL;
             egr_neighs_t *n = ns_i[i];
-            for (j = 0; j < graph->out_adj_sizes[i]; j++) {
+            for (j = 0; j < graph->OutAdjSizes[i]; j++) {
                 if (p != NULL)
                     free(p);
                 p = n;
@@ -518,33 +518,33 @@ int read_egfu(const char *fileName, FILE *fd, Graph *graph) {
     return 0;
 };
 
-int read_egfd(const char *fileName, FILE *fd, Graph *graph) {
+int read_egfd(const char *fileName, FILE *fd, FAmGraph *graph) {
     char str[STR_READ_LENGTH];
     int i, j;
 
     if (fscanf(fd, "%s", str) != 1) { // #graphname
         return -1;
     }
-    if (fscanf(fd, "%d", &(graph->nof_nodes)) != 1) { // nof nodes
+    if (fscanf(fd, "%d", &(graph->NumOfVertex)) != 1) { // nof nodes
         return -1;
     }
     // node labels
-    graph->nodes_attrs = (void **)malloc(graph->nof_nodes * sizeof(void *));
+    graph->VertexAttributes = (void **)malloc(graph->NumOfVertex * sizeof(void *));
     char *label = new char[STR_READ_LENGTH];
-    for (i = 0; i < graph->nof_nodes; i++) {
+    for (i = 0; i < graph->NumOfVertex; i++) {
         if (fscanf(fd, "%s", label) != 1) {
             return -1;
         }
-        graph->nodes_attrs[i] = new std::string(label);
+        graph->VertexAttributes[i] = new std::string(label);
     }
 
     // edges
-    graph->out_adj_sizes = (int *)calloc(graph->nof_nodes, sizeof(int));
-    graph->in_adj_sizes = (int *)calloc(graph->nof_nodes, sizeof(int));
+    graph->OutAdjSizes = (int *)calloc(graph->NumOfVertex, sizeof(int));
+    graph->InAdjSizes = (int *)calloc(graph->NumOfVertex, sizeof(int));
 
-    egr_neighs_t **ns_o = (egr_neighs_t **)malloc(graph->nof_nodes * sizeof(egr_neighs_t));
-    egr_neighs_t **ns_i = (egr_neighs_t **)malloc(graph->nof_nodes * sizeof(egr_neighs_t));
-    for (i = 0; i < graph->nof_nodes; i++) {
+    egr_neighs_t **ns_o = (egr_neighs_t **)malloc(graph->NumOfVertex * sizeof(egr_neighs_t));
+    egr_neighs_t **ns_i = (egr_neighs_t **)malloc(graph->NumOfVertex * sizeof(egr_neighs_t));
+    for (i = 0; i < graph->NumOfVertex; i++) {
         ns_o[i] = NULL;
         ns_i[i] = NULL;
     }
@@ -564,8 +564,8 @@ int read_egfd(const char *fileName, FILE *fd, Graph *graph) {
             return -1;
         }
 
-        graph->out_adj_sizes[es]++;
-        graph->in_adj_sizes[et]++;
+        graph->OutAdjSizes[es]++;
+        graph->InAdjSizes[et]++;
 
         if (ns_o[es] == NULL) {
             ns_o[es] = (egr_neighs_t *)malloc(sizeof(egr_neighs_t));
@@ -581,25 +581,25 @@ int read_egfd(const char *fileName, FILE *fd, Graph *graph) {
         }
     }
 
-    graph->out_adj_list = (int **)malloc(graph->nof_nodes * sizeof(int *));
-    graph->in_adj_list = (int **)malloc(graph->nof_nodes * sizeof(int *));
-    graph->out_adj_attrs = (void ***)malloc(graph->nof_nodes * sizeof(void **));
+    graph->OutAdjList = (int **)malloc(graph->NumOfVertex * sizeof(int *));
+    graph->InAdjList = (int **)malloc(graph->NumOfVertex * sizeof(int *));
+    graph->OutAdjAttributes = (void ***)malloc(graph->NumOfVertex * sizeof(void **));
 
-    int *ink = (int *)calloc(graph->nof_nodes, sizeof(int));
-    for (i = 0; i < graph->nof_nodes; i++) {
-        graph->in_adj_list[i] = (int *)calloc(graph->in_adj_sizes[i], sizeof(int));
+    int *ink = (int *)calloc(graph->NumOfVertex, sizeof(int));
+    for (i = 0; i < graph->NumOfVertex; i++) {
+        graph->InAdjList[i] = (int *)calloc(graph->InAdjSizes[i], sizeof(int));
     }
-    for (i = 0; i < graph->nof_nodes; i++) {
+    for (i = 0; i < graph->NumOfVertex; i++) {
         // reading degree and successors of vertex i
-        graph->out_adj_list[i] = (int *)calloc(graph->out_adj_sizes[i], sizeof(int));
-        graph->out_adj_attrs[i] = (void **)malloc(graph->out_adj_sizes[i] * sizeof(void *));
+        graph->OutAdjList[i] = (int *)calloc(graph->OutAdjSizes[i], sizeof(int));
+        graph->OutAdjAttributes[i] = (void **)malloc(graph->OutAdjSizes[i] * sizeof(void *));
 
         egr_neighs_t *n = ns_o[i];
-        for (j = 0; j < graph->out_adj_sizes[i]; j++) {
-            graph->out_adj_list[i][j] = n->nid;
-            graph->out_adj_attrs[i][j] = n->label;
+        for (j = 0; j < graph->OutAdjSizes[i]; j++) {
+            graph->OutAdjList[i][j] = n->nid;
+            graph->OutAdjAttributes[i][j] = n->label;
 
-            graph->in_adj_list[n->nid][ink[n->nid]] = i;
+            graph->InAdjList[n->nid][ink[n->nid]] = i;
             ink[n->nid]++;
 
             n = n->next;
