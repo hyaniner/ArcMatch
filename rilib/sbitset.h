@@ -133,11 +133,11 @@ public:
         return count;
     }
 
-    bool at_least_one()
+    /*bool at_least_one()
     {
         iterator IT = first_ones();
         return IT != end();
-    }
+    }*/
 
     bool get(size_t pos)
     {
@@ -166,7 +166,7 @@ public:
         }
     }
 
-    void resizeAsis(size_t new_size)
+    /*void resizeAsis(size_t new_size)
     {
         // TODO not used but nedded for future version
         //		if(new_size < _nblocks * bitsof_block){
@@ -180,7 +180,7 @@ public:
             _bits = (sbitset_block*)malloc(n_nblocks * bytes_per_block);
             _nblocks = n_nblocks;
         }
-    }
+    }*/
 
     void set(size_t pos, bool value)
     {
@@ -275,7 +275,7 @@ public:
         return true;
     }
 
-    void setAll(size_t size, bool value)
+    /*void setAll(size_t size, bool value)
     {
         resizeAsis(size);
         sbitset_block svalue = 0x0;
@@ -289,7 +289,7 @@ public:
         {
             _bits[i] = svalue;
         }
-    }
+    }*/
 
     /* ============================================================
      * Iterators

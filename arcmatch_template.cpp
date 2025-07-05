@@ -45,7 +45,6 @@ RE|NRE  (reduce or not edge domains)				REDUCE_EDGES is on for RE
 */
 
 
-
 //#define MDEBUG
 
 //#define PRINT_MATCHES
@@ -86,7 +85,6 @@ RE|NRE  (reduce or not edge domains)				REDUCE_EDGES is on for RE
 #include <ctime>
 
 
-
 #include "fr_textdb_driver.h"
 #include "timer.h"
 
@@ -125,446 +123,471 @@ typedef std::unordered_set< std::pair<int,int>, pair_hash> unordered_edge_set;
 
 using namespace rilib;
 
-enum MATCH_TYPE {
-	MT_ISO,		//isomprhism
-	MT_INDSUB, //induced sub-isomorphism
-	MT_MONO		//monomorphism
+enum MATCH_TYPE
+{
+    MT_ISO, //isomprhism
+    MT_INDSUB, //induced sub-isomorphism
+    MT_MONO //monomorphism
 };
 
 void usage(char* args0);
-int match(MATCH_TYPE matchtype, GRAPH_FILE_TYPE filetype,	std::string& referencefile,	std::string& queryfile);
+int match(MATCH_TYPE matchtype, GRAPH_FILE_TYPE filetype, std::string& referencefile, std::string& queryfile);
 
 
-int main(int argc, char* argv[]){
+int main(int argc, char* argv[])
+{
 #ifdef PRINT_MATCHES
-	std::cout<<"DIRECTIVE PRINT_MATCHES is on\n";
+    std::cout << "DIRECTIVE PRINT_MATCHES is on\n";
 #endif
 
-	/*
-	unordered_edge_set* domains;
-	domains = new unordered_edge_set[10];
-	domains[0].insert( std::pair<int,int>(0,1) );
-	*/
+    /*
+    unordered_edge_set* domains;
+    domains = new unordered_edge_set[10];
+    domains[0].insert( std::pair<int,int>(0,1) );
+    */
 
-	if(argc!=5){
-			usage(argv[0]);
-			return -1;
-		}
+    if (argc != 5)
+    {
+        usage(argv[0]);
+        return -1;
+    }
 
-	MATCH_TYPE matchtype;
-	GRAPH_FILE_TYPE filetype;
-	std::string reference;
-	std::string query;
+    MATCH_TYPE matchtype;
+    GRAPH_FILE_TYPE filetype;
+    std::string reference;
+    std::string query;
 
-	std::string par = argv[1];
-	if(par=="iso"){
-		matchtype = MT_ISO;
-	}
-	else if(par=="ind"){
-		matchtype = MT_INDSUB;
-	}
-	else
-	if(par=="mono"){
-		matchtype = MT_MONO;
-	}
-	else{
-		usage(argv[0]);
-		return -1;
-	}
+    std::string par = argv[1];
+    if (par == "iso")
+    {
+        matchtype = MT_ISO;
+    }
+    else if (par == "ind")
+    {
+        matchtype = MT_INDSUB;
+    }
+    else if (par == "mono")
+    {
+        matchtype = MT_MONO;
+    }
+    else
+    {
+        usage(argv[0]);
+        return -1;
+    }
 
-	par = argv[2];
-	if(par=="gfu"){
-		filetype = GFT_GFU;		//undirected type
-	}
-	else if(par=="gfd"){
-		filetype = GFT_GFD;		//directed type
-	}
-	else if(par=="geu"){
-		filetype = GFT_EGFU;	//undirect type with labels on edges
-	}
-	else if(par=="ged"){
-		filetype = GFT_EGFD;	//direct type with labels on edges
-	}
-	//if no labels, domains are unuseful
-//	else if(par=="vfu"){
-//		filetype = GFT_VFU;
-//	}
-	else{
-		usage(argv[0]);
-		return -1;
-	}
+    par = argv[2];
+    if (par == "gfu")
+    {
+        filetype = GFT_GFU; //undirected type
+    }
+    else if (par == "gfd")
+    {
+        filetype = GFT_GFD; //directed type
+    }
+    else if (par == "geu")
+    {
+        filetype = GFT_EGFU; //undirect type with labels on edges
+    }
+    else if (par == "ged")
+    {
+        filetype = GFT_EGFD; //direct type with labels on edges
+    }
+    //if no labels, domains are unuseful
+    //	else if(par=="vfu"){
+    //		filetype = GFT_VFU;
+    //	}
+    else
+    {
+        usage(argv[0]);
+        return -1;
+    }
 
-	reference = argv[3];
-	query = argv[4];
+    reference = argv[3];
+    query = argv[4];
 
-	return match(matchtype, filetype, reference, query);
+    return match(matchtype, filetype, reference, query);
 };
 
 
-
-
-
-void usage(char* args0){
-	std::cout<<"usage "<<args0<<" [iso ind mono] [gfu gfd geu ged] reference query\n";
-	std::cout<<"\tmatch type:\n";
-	std::cout<<"\t\tiso = isomorphism\n";
-	std::cout<<"\t\tind = induced subisomorphism\n";
-	std::cout<<"\t\tmono = monomorphism\n";
-	std::cout<<"\tgraph input format:\n";
-	std::cout<<"\t\tgfu = undirect graphs with labels on nodes\n";
-	std::cout<<"\t\tgfd = direct graphs with labels on nodes\n";
-	std::cout<<"\t\tgeu = undirect graphs with labels both on nodes and edges\n";
-	std::cout<<"\t\tged = direct graphs with labels both on nodes and edges\n";
-	std::cout<<"\treference file contains one ormore reference graphs\n";
-	std::cout<<"\tquery contains the query graph (just one)\n";
+void usage(char* args0)
+{
+    std::cout << "usage " << args0 << " [iso ind mono] [gfu gfd geu ged] reference query\n";
+    std::cout << "\tmatch type:\n";
+    std::cout << "\t\tiso = isomorphism\n";
+    std::cout << "\t\tind = induced subisomorphism\n";
+    std::cout << "\t\tmono = monomorphism\n";
+    std::cout << "\tgraph input format:\n";
+    std::cout << "\t\tgfu = undirect graphs with labels on nodes\n";
+    std::cout << "\t\tgfd = direct graphs with labels on nodes\n";
+    std::cout << "\t\tgeu = undirect graphs with labels both on nodes and edges\n";
+    std::cout << "\t\tged = direct graphs with labels both on nodes and edges\n";
+    std::cout << "\treference file contains one ormore reference graphs\n";
+    std::cout << "\tquery contains the query graph (just one)\n";
 
 };
 
 
 int match(
-		MATCH_TYPE 			matchtype,
-		GRAPH_FILE_TYPE 	filetype,
-		std::string& 		referencefile,
-		std::string& 	queryfile){
-	bool doBijIso = (matchtype == MT_ISO);
+    MATCH_TYPE matchtype,
+    GRAPH_FILE_TYPE filetype,
+    std::string& referencefile,
+    std::string& queryfile)
+{
+    bool doBijIso = (matchtype == MT_ISO);
 
-	//TIMEHANDLE load_s, load_s_q, make_mama_s, match_s, total_s, s_tmp;
-	double load_t=0;double load_t_q=0; double make_mama_t=0; double match_t=0; double total_t=0; double t_tmp;
-
-
-	//total_s=start_time();
-
-	int rret;
-
-	FAmAttributeComparator* nodeComparator;	//to compare node labels
-	FAmAttributeComparator* edgeComparator;	//to compare edges labels
-	switch(filetype){
-		case GFT_GFU:
-		case GFT_GFD:
-			//for these formats, labels are only on nodes and they are strings
-			nodeComparator = new FAmStringAttrComparator();
-			//nodeComparator = new DefaultAttrComparator();
-			edgeComparator = new FAmDefaultAttrComparator();
-			break;
-		case GFT_EGFU:
-		case GFT_EGFD:
-			//labels both on nodes and edges
-			nodeComparator = new FAmStringAttrComparator();
-			edgeComparator = new FAmStringAttrComparator();
-			break;
-//		case GFT_VFU:
-//			//no labels
-//			nodeComparator = new DefaultAttrComparator();
-//			edgeComparator = new DefaultAttrComparator();
-//			break;
-	}
+    //TIMEHANDLE load_s, load_s_q, make_mama_s, match_s, total_s, s_tmp;
+    double load_t = 0;
+    double load_t_q = 0;
+    double make_mama_t = 0;
+    double match_t = 0;
+    double total_t = 0;
+    double t_tmp;
 
 
-	//TIMEHANDLE tt_start;
-	double tt_end;
+    //total_s=start_time();
+
+    int rret;
+
+    FAmAttributeComparator* nodeComparator; //to compare node labels
+    FAmAttributeComparator* edgeComparator; //to compare edges labels
+    switch (filetype)
+    {
+        case GFT_GFU:
+        case GFT_GFD:
+            //for these formats, labels are only on nodes and they are strings
+            nodeComparator = new FAmStringAttrComparator();
+            //nodeComparator = new DefaultAttrComparator();
+            edgeComparator = new FAmDefaultAttrComparator();
+            break;
+        case GFT_EGFU:
+        case GFT_EGFD:
+            //labels both on nodes and edges
+            nodeComparator = new FAmStringAttrComparator();
+            edgeComparator = new FAmStringAttrComparator();
+            break;
+            //		case GFT_VFU:
+            //			//no labels
+            //			nodeComparator = new DefaultAttrComparator();
+            //			edgeComparator = new DefaultAttrComparator();
+            //			break;
+    }
+
+
+    //TIMEHANDLE tt_start;
+    double tt_end;
 
 #ifdef MDEBUG
-	std::cout<<"reading query...\n";
+    std::cout << "reading query...\n";
 #endif
 
-	//read the query
-	//load_s_q=start_time();
-	FAmGraph *query = new FAmGraph();
-	rret = read_graph(queryfile.c_str(), query, filetype);
-	//load_t_q+=end_time(load_s_q);
-	if(rret !=0){
-		std::cout<<"error on reading query graph\n";
-	}
+    //read the query
+    //load_s_q=start_time();
+    FAmGraph* query = new FAmGraph();
+    rret = read_graph(queryfile.c_str(), query, filetype);
+    //load_t_q+=end_time(load_s_q);
+    if (rret != 0)
+    {
+        std::cout << "error on reading query graph\n";
+    }
 
-	//delete dquery;
-	//load_t_q+=end_time(load_s_q);
+    //delete dquery;
+    //load_t_q+=end_time(load_s_q);
 
-	long 	steps = 0,				//total number of steps of the backtracking phase
-			triedcouples = 0, 		//nof tried pair (query node, reference node)
-			matchcount = 0, 		//nof found matches
-			matchedcouples = 0;		//nof mathed pair (during partial solutions)
-	long tsteps = 0, ttriedcouples = 0, tmatchedcouples = 0;
+    long steps = 0, //total number of steps of the backtracking phase
+         triedcouples = 0, //nof tried pair (query node, reference node)
+         matchcount = 0, //nof found matches
+         matchedcouples = 0; //nof mathed pair (during partial solutions)
+    long tsteps = 0, ttriedcouples = 0, tmatchedcouples = 0;
 
-	FileReader *fd = open_file(referencefile.c_str(), filetype);
-	if(fd != NULL){
+    FileReader* fd = open_file(referencefile.c_str(), filetype);
+    if (fd != NULL)
+    {
 #ifdef PRINT_MATCHES
-		//if you want to print found matches on screen
-		FAmMatchListener* matchListener=new FAmConsoleMatchListener();
+        //if you want to print found matches on screen
+        FAmMatchListener* matchListener = new FAmConsoleMatchListener();
 #else
-		//do not print matches
-		FAmMatchListener* matchListener=new FAmEmptyMatchListener();
+        //do not print matches
+        FAmMatchListener* matchListener = new FAmEmptyMatchListener();
 #endif
 
-		int i=0;
-		bool rreaded = true;
-		do{	//for each reference graph in the file
-			//load_s=start_time();
-			FAmGraph * rrg = new FAmGraph();
-			//read the graph
+        int i = 0;
+        bool rreaded = true;
+        do
+        {
+            //for each reference graph in the file
+            //load_s=start_time();
+            FAmGraph* rrg = new FAmGraph();
+            //read the graph
 #ifdef MDEBUG
-	std::cout<<"reading reference...\n";
+            std::cout << "reading reference...\n";
 #endif
-			int rret = read_dbgraph(referencefile.c_str(), fd, rrg, filetype);
-			//rreaded = fd->is_valid();
-			rreaded = true;
-			//load_t+=end_time(load_s);
+            int rret = read_dbgraph(referencefile.c_str(), fd, rrg, filetype);
+            //rreaded = fd->is_valid();
+            rreaded = true;
+            //load_t+=end_time(load_s);
 
 
-			if(rreaded){
+            if (rreaded)
+            {
 
-				if(!doBijIso ||
-					(doBijIso && (query->NumOfVertex == rrg->NumOfVertex))){
+                if (!doBijIso ||
+                    (doBijIso && (query->NumOfVertex == rrg->NumOfVertex)))
+                {
 
-					//initialize domains
-					FAmsbitset *domains = new FAmsbitset[query->NumOfVertex];
-					//match_s=start_time();
+                    //initialize domains
+                    FAmsbitset* domains = new FAmsbitset[query->NumOfVertex];
+                    //match_s=start_time();
 
-					std::cout<<"initializing domain...\n";
+                    std::cout << "initializing domain...\n";
 
-					//s_tmp = start_time();
-					bool domok = init_domains(*rrg, *query, *nodeComparator, *edgeComparator, domains, doBijIso);
-					//t_tmp = end_time(s_tmp);
-					//std::cout<<":time: init domains "<<t_tmp<<"\n";
+                    //s_tmp = start_time();
+                    bool domok = init_domains(*rrg, *query, *nodeComparator, *edgeComparator, domains, doBijIso);
+                    //t_tmp = end_time(s_tmp);
+                    //std::cout<<":time: init domains "<<t_tmp<<"\n";
 
-					//match_t+=end_time(match_s);
+                    //match_t+=end_time(match_s);
 
-					//if domain constraints are satisfied (at least one compatible target node for each query node)
-					if(domok){
-						std::cout<<"domain ok\n";
-						std::cout<<"initializing edge domain...\n";
+                    //if domain constraints are satisfied (at least one compatible target node for each query node)
+                    if (domok)
+                    {
+                        std::cout << "domain ok\n";
+                        std::cout << "initializing edge domain...\n";
 
-						//match_s=start_time();
+                        //match_s=start_time();
 
-						FAmEdgeDomains edomains;
-						std::cout<<"edomain init\n";
+                        FAmEdgeDomains edomains;
+                        std::cout << "edomain init\n";
 
-						//s_tmp = start_time();
-						init_edomains(*rrg, *query, domains, *edgeComparator, edomains);
-						//t_tmp = end_time(s_tmp);
-						//std::cout<<":time: init edomains "<<t_tmp<<"\n";
+                        //s_tmp = start_time();
+                        init_edomains(*rrg, *query, domains, *edgeComparator, edomains);
+                        //t_tmp = end_time(s_tmp);
+                        //std::cout<<":time: init edomains "<<t_tmp<<"\n";
 
 #ifdef MDEBUG
-						print_domains(*query, *rrg, domains,edomains);
+                        print_domains(*query, *rrg, domains, edomains);
 #endif
 
-						//s_tmp = start_time();
+                        //s_tmp = start_time();
 
 #ifdef REDUCE_EDGES
-						FAmDomainReduction dr(*query, domains, edomains, rrg->NumOfVertex);
-						std::cout<<"edomain reduction\n";
-						dr.reduce_by_paths(PATH_LENGTH);
-						//dr.reduce_by_paths(query->nof_nodes+1);
-						std::cout<<"edomain refinement\n";
-						dr.final_refinement();
-						std::cout<<"edomain done\n";
+                        FAmDomainReduction dr(*query, domains, edomains, rrg->NumOfVertex);
+                        std::cout << "edomain reduction\n";
+                        dr.reduce_by_paths(PATH_LENGTH);
+                        //dr.reduce_by_paths(query->nof_nodes+1);
+                        std::cout << "edomain refinement\n";
+                        dr.final_refinement();
+                        std::cout << "edomain done\n";
 #endif
 
-						//t_tmp = end_time(s_tmp);
-						//std::cout<<":time: reduce edomains "<<t_tmp<<"\n";
+                        //t_tmp = end_time(s_tmp);
+                        //std::cout<<":time: reduce edomains "<<t_tmp<<"\n";
 
-						//match_t+=end_time(match_s);
+                        //match_t+=end_time(match_s);
 
 #ifdef MDEBUG
-						print_domains(*query, *rrg, domains,edomains);
+                        print_domains(*query, *rrg, domains, edomains);
 #endif
 
-						//std::cout<<"building matching machine...\n";
+                        //std::cout<<"building matching machine...\n";
 
-						//just get the domain size for each query node
-						int *domains_size = new int[query->NumOfVertex];
-						int dsize;
-						for(int ii=0; ii<query->NumOfVertex; ii++){
-							dsize = 0;
-							for(FAmsbitset::iterator IT = domains[ii].first_ones(); IT!=domains[ii].end(); IT.next_ones()){
-								dsize++;
-							}
-							domains_size[ii] = dsize;
+                        //just get the domain size for each query node
+                        int* domains_size = new int[query->NumOfVertex];
+                        int dsize;
+                        for (int ii = 0; ii < query->NumOfVertex; ii++)
+                        {
+                            dsize = 0;
+                            for (FAmsbitset::iterator IT = domains[ii].first_ones(); IT != domains[ii].end(); IT.next_ones())
+                            {
+                                dsize++;
+                            }
+                            domains_size[ii] = dsize;
 
-							/*std::cout<<"dsize["<<ii<<"]("<<domains_size[ii]<<")\n";
-							domains[ii].print_numbers();
-							std::cout<<"\n";
-							*/
-						}
+                            /*std::cout<<"dsize["<<ii<<"]("<<domains_size[ii]<<")\n";
+                            domains[ii].print_numbers();
+                            std::cout<<"\n";
+                            */
+                        }
 
-						//for(int ii=0; ii<query->nof_nodes; ii++){
-						//	std::cout<<ii<<" "<<query->out_adj_sizes[ii]<<" "<<domains_size[ii]<<"\n";
-						//}
-
-
-						//build the static matching machine
-						//make_mama_s=start_time();
-						
-						//MatchingMachine* mama = new MaMaConstrFirstDs(*query, domains, domains_size);
-						#ifdef MAMA_1
-						FAmMatchingMachine* mama = new FAmMaMaConstrFirstDs(*query, domains, domains_size);
-						#endif
-
-						#ifdef MAMA_0
-						FAmMatchingMachine* mama = new FAmMaMaConstrFirstEDs(*query, domains, domains_size, edomains);
-						#endif
-
-						#ifdef MAMA_FC
-						FAmMatchingMachine* mama = new FAmMaMaFloodCore(*query, domains, domains_size, edomains, query->NumOfVertex);
-						#endif
-						
-						#ifdef MAMA_AC
-						FAmMatchingMachine* mama = new FAmMaMaAngularCoefficient(*query, domains, domains_size, edomains);
-						#endif
-
-						#ifdef MAMA_NS
-						FAmMatchingMachine* mama = new FAmMaMaConstrFirstNodeSets(*query, domains, domains_size);
-						#endif
-
-						#ifdef MAMA_NSL
-						FAmMatchingMachine* mama = new FAmMaMaConstrFirstNodeSetsLeafs(*query, domains, domains_size);
-						#endif
-
-						#ifdef MAMA_CC
-						FAmMatchingMachine* mama = new FAmMaMaConstrFirstNSCC(*query, domains, domains_size, *nodeComparator, *edgeComparator);
-						#endif
+                        //for(int ii=0; ii<query->nof_nodes; ii++){
+                        //	std::cout<<ii<<" "<<query->out_adj_sizes[ii]<<" "<<domains_size[ii]<<"\n";
+                        //}
 
 
-						//std::cout<<"build mm\n";
-						mama->build(*query);
-						//std::cout<<"fix edis mm\n";
-						mama->fix_eids(*query);
-						//make_mama_t+=end_time(make_mama_s);
-						//std::cout<<"done\n";
+                        //build the static matching machine
+                        //make_mama_s=start_time();
 
-						//t_tmp = end_time(make_mama_s);
-						std::cout<<":time: make mama "<<t_tmp<<"\n";
+                        //MatchingMachine* mama = new MaMaConstrFirstDs(*query, domains, domains_size);
+#ifdef MAMA_1
+                        FAmMatchingMachine* mama = new FAmMaMaConstrFirstDs(*query, domains, domains_size);
+#endif
 
-						std::cout<<"ordering: ";
-						for(int ii=0; ii<mama->nof_sn; ii++){
-							std::cout<<mama->map_state_to_node[ii]<<"("<<domains_size[mama->map_state_to_node[ii]]<<") ";
-						}
-						std::cout<<"\n";
-						std::cout<<"domain sizes: ";
-						for(int ii=0; ii<mama->nof_sn; ii++){
-							std::cout<<ii<<"["<<domains_size[ii]<<"] ";
-						}
-						std::cout<<"\n";
+#ifdef MAMA_0
+                        FAmMatchingMachine* mama = new FAmMaMaConstrFirstEDs(*query, domains, domains_size, edomains);
+#endif
+
+#ifdef MAMA_FC
+                        FAmMatchingMachine* mama = new FAmMaMaFloodCore(*query, domains, domains_size, edomains, query->NumOfVertex);
+#endif
+
+#ifdef MAMA_AC
+                        FAmMatchingMachine* mama = new FAmMaMaAngularCoefficient(*query, domains, domains_size, edomains);
+#endif
+
+#ifdef MAMA_NS
+                        FAmMatchingMachine* mama = new FAmMaMaConstrFirstNodeSets(*query, domains, domains_size);
+#endif
+
+#ifdef MAMA_NSL
+                        FAmMatchingMachine* mama = new FAmMaMaConstrFirstNodeSetsLeafs(*query, domains, domains_size);
+#endif
+
+#ifdef MAMA_CC
+                        FAmMatchingMachine* mama = new FAmMaMaConstrFirstNSCC(*query, domains, domains_size, *nodeComparator, *edgeComparator);
+#endif
+
+
+                        //std::cout<<"build mm\n";
+                        mama->build(*query);
+                        //std::cout<<"fix edis mm\n";
+                        mama->fix_eids(*query);
+                        //make_mama_t+=end_time(make_mama_s);
+                        //std::cout<<"done\n";
+
+                        //t_tmp = end_time(make_mama_s);
+                        std::cout << ":time: make mama " << t_tmp << "\n";
+
+                        std::cout << "ordering: ";
+                        for (int ii = 0; ii < mama->nof_sn; ii++)
+                        {
+                            std::cout << mama->map_state_to_node[ii] << "(" << domains_size[mama->map_state_to_node[ii]] << ") ";
+                        }
+                        std::cout << "\n";
+                        std::cout << "domain sizes: ";
+                        for (int ii = 0; ii < mama->nof_sn; ii++)
+                        {
+                            std::cout << ii << "[" << domains_size[ii] << "] ";
+                        }
+                        std::cout << "\n";
 
 #ifdef MDEBUG
-						mama->print();
-						print_domains(*query, *rrg, domains,edomains);
-						print_domains_extended(*query, *rrg, domains,edomains);
+                        mama->print();
+                        print_domains(*query, *rrg, domains, edomains);
+                        print_domains_extended(*query, *rrg, domains, edomains);
 #endif
 
 #ifdef MDEBUG
-	mama->print();
+                        mama->print();
 #endif
 
-						///match_s=start_time();
+                        ///match_s=start_time();
 
 #ifdef MDEBUG
-	std::cout<<"solving...\n";
+                        std::cout << "solving...\n";
 #endif
-						//prepare the matching phase
-						FAmSolver* solver;
-						switch(matchtype){
-						case MT_MONO:
-							solver = new FAmSubGISolver(*mama, *rrg, *query, *nodeComparator, *edgeComparator, *matchListener, domains, domains_size, edomains);
-							break;
-						case MT_ISO:  //a specialized solver for this will be better
-						case MT_INDSUB:
-							solver = new FAmInducedSubGISolver(*mama, *rrg, *query, *nodeComparator, *edgeComparator, *matchListener, domains, domains_size, edomains);
-							break;
-						}
+                        //prepare the matching phase
+                        FAmSolver* solver;
+                        switch (matchtype)
+                        {
+                            case MT_MONO:
+                                solver = new FAmSubGISolver(*mama, *rrg, *query, *nodeComparator, *edgeComparator, *matchListener, domains, domains_size, edomains);
+                                break;
+                            case MT_ISO: //a specialized solver for this will be better
+                            case MT_INDSUB:
+                                solver = new FAmInducedSubGISolver(*mama, *rrg, *query, *nodeComparator, *edgeComparator, *matchListener, domains, domains_size, edomains);
+                                break;
+                        }
 
-						//run the matching phase
-						//std::cout<<"solving...\n";
-
-
-						//s_tmp = start_time();
-
-						
-						#ifdef SOLVER_0
-						solver->solve();
-						#endif
-
-						#ifdef SOLVER_ED
-						solver->SolveEd();
-						#endif
-
-						#ifdef SOLVER_DP
-						solver->solve_rp();
-						#endif
-
-						#ifdef SOLVER_LF
-						solver->SolveLeafs();
-						#endif
+                        //run the matching phase
+                        //std::cout<<"solving...\n";
 
 
-						//t_tmp = end_time(s_tmp);
-						//std::cout<<":time: solve "<<t_tmp<<"\n";
+                        //s_tmp = start_time();
 
 
+#ifdef SOLVER_0
+                        solver->solve();
+#endif
 
-						//std::cout<<"done\n";
+#ifdef SOLVER_ED
+                        solver->SolveEd();
+#endif
 
-						//match_t+=end_time(match_s);
+#ifdef SOLVER_DP
+                        solver->solve_rp();
+#endif
 
-						steps += solver->steps;
-						triedcouples += solver->triedcouples;
-						matchedcouples += solver->matchedcouples;
+#ifdef SOLVER_LF
+                        solver->SolveLeafs();
+#endif
 
-						matchcount += solver->matchcount;
 
-						delete solver;
-						delete mama;
+                        //t_tmp = end_time(s_tmp);
+                        //std::cout<<":time: solve "<<t_tmp<<"\n";
+
+
+                        //std::cout<<"done\n";
+
+                        //match_t+=end_time(match_s);
+
+                        steps += solver->steps;
+                        triedcouples += solver->triedcouples;
+                        matchedcouples += solver->matchedcouples;
+
+                        matchcount += solver->matchcount;
+
+                        delete solver;
+                        delete mama;
 #ifdef MDEBUG
-	std::cout<<"done\n";
+                        std::cout << "done\n";
 #endif
-					}
-				}
-//				delete rrg;
-				//ReferenceGRaph destroyer is not yet developed...
-			}
-			i++;
+                    }
+                }
+                //				delete rrg;
+                //ReferenceGRaph destroyer is not yet developed...
+            }
+            i++;
 
-			
-		//}while(rreaded);
-		}while( fd->is_valid());
+
+            //}while(rreaded);
+        }
+        while (fd->is_valid());
 
 #ifdef MDEBUG
-	std::cout<<"all done\n";
+        std::cout << "all done\n";
 #endif
 
-		//if(matchListener != NULL)
-		//matchcount += matchListener->matchcount;
+        //if(matchListener != NULL)
+        //matchcount += matchListener->matchcount;
 
-		delete matchListener;
+        delete matchListener;
 
-		fd->close();
-	}
-	else{
-		std::cout<<"unable to open reference file\n";
-		return -1;
-	}
+        fd->close();
+    }
+    else
+    {
+        std::cout << "unable to open reference file\n";
+        return -1;
+    }
 
-	//total_t=end_time(total_s);
+    //total_t=end_time(total_s);
 
 #ifdef CSV_FORMAT
-	std::cout<<referencefile<<"\t"<<queryfile<<"\t";
-	std:cout<<load_t_q<<"\t"<<make_mama_t<<"\t"<<load_t<<"\t"<<match_t<<"\t"<<total_t<<"\t"<<steps<<"\t"<<triedcouples<<"\t"<<matchedcouples<<"\t"<<matchcount;
+    std::cout << referencefile << "\t" << queryfile << "\t";
+std:
+    cout << load_t_q << "\t" << make_mama_t << "\t" << load_t << "\t" << match_t << "\t" << total_t << "\t" << steps << "\t" << triedcouples << "\t" << matchedcouples << "\t" << matchcount;
 #else
-	std::cout<<"reference file: "<<referencefile<<"\n";
-	std::cout<<"query file: "<<queryfile<<"\n";
-	std::cout<<"reading time: "<<total_t<<"\n";
-	std::cout<<"total time: "<<total_t<<"\n";
-	std::cout<<"matching time: "<<match_t<<"\n";
-	std::cout<<"number of found matches: "<<matchcount<<"\n";
-	std::cout<<"search space size: "<<matchedcouples<<"\n";
+    std::cout << "reference file: " << referencefile << "\n";
+    std::cout << "query file: " << queryfile << "\n";
+    std::cout << "reading time: " << total_t << "\n";
+    std::cout << "total time: " << total_t << "\n";
+    std::cout << "matching time: " << match_t << "\n";
+    std::cout << "number of found matches: " << matchcount << "\n";
+    std::cout << "search space size: " << matchedcouples << "\n";
 #endif
 
-	delete nodeComparator;
-	delete edgeComparator;
+    delete nodeComparator;
+    delete edgeComparator;
 
-	return 0;
+    return 0;
 };
-
-
-
-
-

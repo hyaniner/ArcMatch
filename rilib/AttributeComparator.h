@@ -38,52 +38,79 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <stdlib.h>
 #include <string.h>
 
-namespace rilib {
-
-class FAmAttributeComparator {
-  public:
-    virtual ~FAmAttributeComparator(){};
-    virtual bool compare(void *attr1, void *attr2) = 0;
-    virtual int compareint(void *attr1, void *attr2) = 0;
+namespace rilib
+{
+class FAmAttributeComparator
+{
+public:
+    virtual ~FAmAttributeComparator()
+    {
+    };
+    virtual bool compare(void* attr1, void* attr2) = 0;
+    virtual int compareint(void* attr1, void* attr2) = 0;
 };
 
-class FAmDefaultAttrComparator : public FAmAttributeComparator {
-  public:
-    FAmDefaultAttrComparator(){};
-    virtual bool compare(void *attr1, void *attr2) { return true; };
-    virtual int compareint(void *attr1, void *attr2) { return 0; };
+class FAmDefaultAttrComparator : public FAmAttributeComparator
+{
+public:
+    FAmDefaultAttrComparator()
+    {
+    };
+
+    virtual bool compare(void* attr1, void* attr2)
+    {
+        return true;
+    };
+
+    virtual int compareint(void* attr1, void* attr2)
+    {
+        return 0;
+    };
 };
 
-class FAmStringAttrComparator : public FAmAttributeComparator {
-  public:
-    FAmStringAttrComparator(){};
-    virtual bool compare(void *attr1, void *attr2) {
-        std::string *a = (std::string *)attr1;
-        std::string *b = (std::string *)attr2;
+class FAmStringAttrComparator : public FAmAttributeComparator
+{
+public:
+    FAmStringAttrComparator()
+    {
+    };
+
+    virtual bool compare(void* attr1, void* attr2)
+    {
+        std::string* a = (std::string*)attr1;
+        std::string* b = (std::string*)attr2;
         return (a->compare(*b)) == 0;
     };
-    virtual int compareint(void *attr1, void *attr2) {
-        std::string *a = (std::string *)attr1;
-        std::string *b = (std::string *)attr2;
+
+    virtual int compareint(void* attr1, void* attr2)
+    {
+        std::string* a = (std::string*)attr1;
+        std::string* b = (std::string*)attr2;
         return a->compare(*b);
     };
 };
 
-class FAmIntAttrComparator : public FAmAttributeComparator {
-  public:
-    FAmIntAttrComparator(){};
-    virtual bool compare(void *attr1, void *attr2) {
-        int *a = (int *)attr1;
-        int *b = (int *)attr2;
+class FAmIntAttrComparator : public FAmAttributeComparator
+{
+public:
+    FAmIntAttrComparator()
+    {
+    };
+
+    virtual bool compare(void* attr1, void* attr2)
+    {
+        int* a = (int*)attr1;
+        int* b = (int*)attr2;
         return ((*a) - (*b)) == 0;
     };
-    virtual int compareint(void *attr1, void *attr2) {
-        int *a = (int *)attr1;
-        int *b = (int *)attr2;
+
+    virtual int compareint(void* attr1, void* attr2)
+    {
+        int* a = (int*)attr1;
+        int* b = (int*)attr2;
         return (*a) - (*b);
     };
 };
-
 } // namespace rilib
 
 #endif /* ATTRIBUTECOMPARATOR_H_ */
