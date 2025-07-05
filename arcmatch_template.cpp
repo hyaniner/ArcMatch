@@ -488,7 +488,7 @@ int match(
 						#endif
 
 						#ifdef SOLVER_ED
-						solver->solve_ed();
+						solver->SolveEd();
 						#endif
 
 						#ifdef SOLVER_DP
@@ -496,7 +496,7 @@ int match(
 						#endif
 
 						#ifdef SOLVER_LF
-						solver->solve_leafs();
+						solver->SolveLeafs();
 						#endif
 
 
