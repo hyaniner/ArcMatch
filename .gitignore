@@ -105,6 +105,9 @@ arcmatch-lt-first
 arcmatch-lt-print
 arcmatch-print
 
+# IDE Related
+.idea/
+.vsconfig
 
 ###################################################################################
 

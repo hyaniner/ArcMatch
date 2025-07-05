@@ -2,6 +2,8 @@
  * gmsize_t.h
  */
 
+#pragma once
+
 #ifndef GMSIZE_T_H_
 #define GMSIZE_T_H_
 

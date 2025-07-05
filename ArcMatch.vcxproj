@@ -142,6 +142,7 @@
     <ClInclude Include="rilib\MaMaFloodCore.h" />
     <ClInclude Include="rilib\MatchingMachine.h" />
     <ClInclude Include="rilib\MatchListener.h" />
+    <ClInclude Include="rilib\PreprocessorControl.h" />
     <ClInclude Include="rilib\sbitset.h" />
     <ClInclude Include="rilib\size_t.h" />
     <ClInclude Include="rilib\Solver.h" />
