@@ -42,7 +42,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace rilib
 {
-bool init_domains(FAmGraph& target, FAmGraph& pattern, FAmAttributeComparator& nodeComparator, FAmAttributeComparator& edgeComparator, FAmsbitset* domains, bool iso)
+bool init_domains(FRiGraph& target, FRiGraph& pattern, FAmAttributeComparator& nodeComparator, FAmAttributeComparator& edgeComparator, FAmsbitset* domains, bool iso)
 {
 
     if (iso)
@@ -187,7 +187,7 @@ public:
     };
 };
 
-bool init_edomains(FAmGraph& target, FAmGraph& pattern, FAmsbitset* node_domains, FAmAttributeComparator& edgeComparator, FAmEdgeDomains& edomains)
+bool init_edomains(FRiGraph& target, FRiGraph& pattern, FAmsbitset* node_domains, FAmAttributeComparator& edgeComparator, FAmEdgeDomains& edomains)
 {
     int nof_pedges = 0;
     for (int i = 0; i < pattern.NumOfVertex; i++)
@@ -302,12 +302,12 @@ bool init_edomains(FAmGraph& target, FAmGraph& pattern, FAmsbitset* node_domains
 class FAmDomainReduction
 {
 public:
-    FAmGraph& query;
+    FRiGraph& query;
     FAmsbitset* node_domains;
     FAmEdgeDomains& edge_domains;
     int nof_target_nodes;
 
-    FAmDomainReduction(FAmGraph& _query, FAmsbitset* ndomains, FAmEdgeDomains& edomains, int noftargetnodes)
+    FAmDomainReduction(FRiGraph& _query, FAmsbitset* ndomains, FAmEdgeDomains& edomains, int noftargetnodes)
         : query(_query)
         , node_domains(ndomains)
         , edge_domains(edomains)
@@ -687,7 +687,7 @@ public:
     };
 };
 
-void print_domains(FAmGraph& query, FAmGraph& target, FAmsbitset* node_domains, FAmEdgeDomains& edge_domains)
+void print_domains(FRiGraph& query, FRiGraph& target, FAmsbitset* node_domains, FAmEdgeDomains& edge_domains)
 {
     std::cout << "nof query nodes " << query.NumOfVertex << "\n";
     for (int i = 0; i < query.NumOfVertex; i++)
@@ -710,7 +710,7 @@ void print_domains(FAmGraph& query, FAmGraph& target, FAmsbitset* node_domains, 
     }
 };
 
-void print_domains_extended(FAmGraph& query, FAmGraph& target, FAmsbitset* node_domains, FAmEdgeDomains& edge_domains)
+void print_domains_extended(FRiGraph& query, FRiGraph& target, FAmsbitset* node_domains, FAmEdgeDomains& edge_domains)
 {
     std::cout << "nof query nodes " << query.NumOfVertex << "\n";
     for (int i = 0; i < query.NumOfVertex; i++)

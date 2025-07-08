@@ -37,28 +37,28 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace rilib
 {
-class FAmMatchListener
+class FRiMatchListener
 {
 public:
     long matchcount;
 
-    FAmMatchListener()
+    FRiMatchListener()
     {
         matchcount = 0;
     }
 
-    virtual ~FAmMatchListener()
+    virtual ~FRiMatchListener()
     {
     };
     virtual void match(int n, int* qIDs, int* rIDs) = 0;
     virtual void match_multiple(int n, int* qIDs, int* rIDs, int si, std::set<int>* leaf_domains) = 0;
 };
 
-class FAmEmptyMatchListener : public FAmMatchListener
+class FAmEmptyMatchListener : public FRiMatchListener
 {
 public:
     FAmEmptyMatchListener()
-        : FAmMatchListener()
+        : FRiMatchListener()
     {
     }
 
@@ -73,11 +73,11 @@ public:
     };
 };
 
-class FAmConsoleMatchListener : public FAmMatchListener
+class FAmConsoleMatchListener : public FRiMatchListener
 {
 public:
     FAmConsoleMatchListener()
-        : FAmMatchListener()
+        : FRiMatchListener()
     {
     }
 

@@ -47,12 +47,12 @@ namespace rilib
 class FAmSolver
 {
 public:
-    FAmMatchingMachine& mama;
-    FAmGraph& rgraph;
-    FAmGraph& qgraph;
+    FRiMatchingMachine& mama;
+    FRiGraph& rgraph;
+    FRiGraph& qgraph;
     FAmAttributeComparator& nodeComparator;
     FAmAttributeComparator& edgeComparator;
-    FAmMatchListener& matchListener;
+    FRiMatchListener& matchListener;
     FAmsbitset* domains;
     int* domains_size;
     FAmEdgeDomains& edomains;
@@ -64,7 +64,7 @@ public:
     long matchcount;
 
 public:
-    FAmSolver(FAmMatchingMachine& _mama, FAmGraph& _rgraph, FAmGraph& _qgraph, FAmAttributeComparator& _nodeComparator, FAmAttributeComparator& _edgeComparator, FAmMatchListener& _matchListener, FAmsbitset* _domains, int* _domains_size
+    FAmSolver(FRiMatchingMachine& _mama, FRiGraph& _rgraph, FRiGraph& _qgraph, FAmAttributeComparator& _nodeComparator, FAmAttributeComparator& _edgeComparator, FRiMatchListener& _matchListener, FAmsbitset* _domains, int* _domains_size
            , FAmEdgeDomains& _edomains)
         : mama(_mama)
         , rgraph(_rgraph)
@@ -92,14 +92,14 @@ public:
 
         int ii;
 
-        int nof_sn = mama.nof_sn;
-        void** nodes_attrs = mama.nodes_attrs; // indexed by state_id
-        int* edges_sizes = mama.edges_sizes; // indexed by state_id
-        MaMaEdge** edges = mama.edges; // indexed by state_id
-        int* map_node_to_state = mama.map_node_to_state; // indexed by node_id
-        int* map_state_to_node = mama.map_state_to_node; // indexed by state_id
-        int* parent_state = mama.parent_state; // indexed by state_id
-        MAMA_PARENTTYPE* parent_type = mama.parent_type; // indexed by state id
+        int nof_sn = mama.NumOfQueryVertex;
+        void** nodes_attrs = mama.NodesAttributes; // indexed by state_id
+        int* edges_sizes = mama.EdgeSizes; // indexed by state_id
+        FMatchingMachineEdge** edges = mama.Edges; // indexed by state_id
+        int* map_node_to_state = mama.QueryVertexToState; // indexed by node_id
+        int* map_state_to_node = mama.StateToQueryVertex; // indexed by state_id
+        int* parent_state = mama.ParentState; // indexed by state_id
+        EParentType* parent_type = mama.ParentType; // indexed by state id
 
         int** candidates = new int*[nof_sn]; // indexed by state_id
         int* candidatesIT = new int[nof_sn]; // indexed by state_id
@@ -233,11 +233,11 @@ public:
 
         int ii;
 
-        int nof_sn = mama.nof_sn;
-        int* map_node_to_state = mama.map_node_to_state; // indexed by node_id
-        int* map_state_to_node = mama.map_state_to_node; // indexed by state_id
-        int* parent_state = mama.parent_state; // indexed by state_id
-        MAMA_PARENTTYPE* parent_type = mama.parent_type; // indexed by state id
+        int nof_sn = mama.NumOfQueryVertex;
+        int* map_node_to_state = mama.QueryVertexToState; // indexed by node_id
+        int* map_state_to_node = mama.StateToQueryVertex; // indexed by state_id
+        int* parent_state = mama.ParentState; // indexed by state_id
+        EParentType* parent_type = mama.ParentType; // indexed by state id
 
         int** candidates = new int*[nof_sn]; // indexed by state_id
         int** candidates_parents = new int*[nof_sn]; // indexed by state_id
@@ -434,9 +434,9 @@ public:
     void solve_rp()
     {
 
-        int nof_sn = mama.nof_sn;
-        int* map_node_to_state = mama.map_node_to_state; // indexed by node_id
-        int* map_state_to_node = mama.map_state_to_node; // indexed by state_id
+        int nof_sn = mama.NumOfQueryVertex;
+        int* map_node_to_state = mama.QueryVertexToState; // indexed by node_id
+        int* map_state_to_node = mama.StateToQueryVertex; // indexed by state_id
 
         typedef std::unordered_map<std::pair<int, int>, int, hash_pair> cand_ecount_t; // (tnodeid,eid) -> count
 
@@ -464,11 +464,11 @@ public:
         }
         for (int i = 0; i < nof_sn; i++)
         {
-            for (int j = 0; j < mama.edges_sizes[i]; j++)
+            for (int j = 0; j < mama.EdgeSizes[i]; j++)
             {
-                if (mama.edges[i][j].source == i)
+                if (mama.Edges[i][j].Source == i)
                 {
-                    int eid = mama.edges[i][j].id;
+                    int eid = mama.Edges[i][j].Id;
                     ordered_edge_set tset;
                     unordered_edge_set* eset = &(edomains.domains[eid]);
                     for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end(); eit++)
@@ -494,7 +494,7 @@ public:
                 }
                 else
                 {
-                    int eid = mama.edges[i][j].id;
+                    int eid = mama.Edges[i][j].Id;
                     ordered_edge_set tset;
                     unordered_edge_set* eset = &(edomains.domains[eid]);
                     for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end(); eit++)
@@ -525,7 +525,7 @@ public:
         int** f_domains = new int*[nof_sn];
         for (int si = 0; si < nof_sn; si++)
         {
-            if (mama.edges_sizes[si] == 0)
+            if (mama.EdgeSizes[si] == 0)
             {
                 int n = map_state_to_node[si];
                 f_domains[si] = new int[domains_size[n]];
@@ -577,25 +577,25 @@ public:
 
             if (candidateIT[si] == -1)
             {
-                if (mama.edges_sizes[si] == 0)
+                if (mama.EdgeSizes[si] == 0)
                 {
                     candidateIT[si] = -1;
                     candidateITsize[si] = domains_size[map_state_to_node[si]];
                 }
-                else if (mama.edges_sizes[si] == 1)
+                else if (mama.EdgeSizes[si] == 1)
                 {
                     int pstate;
-                    eid = mama.edges[si][0].id;
+                    eid = mama.Edges[si][0].Id;
 
-                    if (mama.edges[si][0].source == si)
+                    if (mama.Edges[si][0].Source == si)
                     {
-                        pnode = solution[mama.edges[si][0].target];
-                        pstate = mama.edges[si][0].target;
+                        pnode = solution[mama.Edges[si][0].Target];
+                        pstate = mama.Edges[si][0].Target;
                     }
                     else
                     {
-                        pnode = solution[mama.edges[si][0].source];
-                        pstate = mama.edges[si][0].source;
+                        pnode = solution[mama.Edges[si][0].Source];
+                        pstate = mama.Edges[si][0].Source;
                     }
 
                     candidateITpnode[si] = pnode;
@@ -610,17 +610,17 @@ public:
                 {
                     maxp = -1;
                     int pstate;
-                    for (int j = 0; j < mama.edges_sizes[si]; j++)
+                    for (int j = 0; j < mama.EdgeSizes[si]; j++)
                     {
-                        eid = mama.edges[si][j].id;
+                        eid = mama.Edges[si][j].Id;
 
-                        if (mama.edges[si][j].source == si)
+                        if (mama.Edges[si][j].Source == si)
                         {
-                            pnode = solution[mama.edges[si][j].target];
+                            pnode = solution[mama.Edges[si][j].Target];
                         }
                         else
                         {
-                            pnode = solution[mama.edges[si][j].source];
+                            pnode = solution[mama.Edges[si][j].Source];
                         }
 
                         if ((maxp == -1) || (ce_counter[std::make_pair(pnode, eid)] > maxpcount))
@@ -629,13 +629,13 @@ public:
                             maxe = eid;
                             maxpcount = ce_counter[std::make_pair(pnode, eid)];
 
-                            if (mama.edges[si][j].source == si)
+                            if (mama.Edges[si][j].Source == si)
                             {
-                                pstate = mama.edges[si][j].target;
+                                pstate = mama.Edges[si][j].Target;
                             }
                             else
                             {
-                                pstate = mama.edges[si][j].source;
+                                pstate = mama.Edges[si][j].Source;
                             }
                         }
                     }
@@ -651,7 +651,7 @@ public:
                 }
             }
 
-            if (mama.edges_sizes[si] == 0)
+            if (mama.EdgeSizes[si] == 0)
             {
                 candidateIT[si]++;
                 while (candidateIT[si] < candidateITsize[si])
@@ -694,14 +694,14 @@ public:
                             CandidateIndex = ordered_edge_domains[candidateITeid[si]][candidateIT[si] + candidateITsize[si]];
                             solution[si] = CandidateIndex;
 
-                            if (mama.edges_sizes[si] > 1)
+                            if (mama.EdgeSizes[si] > 1)
                             {
 
                                 bool checked = true;
-                                for (int me = 0; me < mama.edges_sizes[si]; me++)
+                                for (int me = 0; me < mama.EdgeSizes[si]; me++)
                                 {
 
-                                    if (edomains.domains[mama.edges[si][me].id].count(std::pair<int, int>(solution[mama.edges[si][me].source], solution[mama.edges[si][me].target])) == 0)
+                                    if (edomains.domains[mama.Edges[si][me].Id].count(std::pair<int, int>(solution[mama.Edges[si][me].Source], solution[mama.Edges[si][me].Target])) == 0)
                                     {
                                         checked = false;
                                         break;
@@ -796,9 +796,9 @@ public:
     void SolveLeafs()
     {
 
-        int NumOfQueryVertex = mama.nof_sn;
-        int* map_node_to_state = mama.map_node_to_state; // indexed by node_id
-        int* map_state_to_node = mama.map_state_to_node; // indexed by state_id
+        int NumOfQueryVertex = mama.NumOfQueryVertex;
+        int* map_node_to_state = mama.QueryVertexToState; // indexed by node_id
+        int* map_state_to_node = mama.StateToQueryVertex; // indexed by state_id
 
         using cand_ecount_t = std::unordered_map<std::pair<int, int>, int, hash_pair>; // (tnodeid,eid) -> count
 
@@ -825,11 +825,11 @@ public:
 
         for (int i = 0; i < NumOfQueryVertex; i++)
         {
-            for (int j = 0; j < mama.edges_sizes[i]; j++)
+            for (int j = 0; j < mama.EdgeSizes[i]; j++)
             {
-                if (mama.edges[i][j].source == i)
+                if (mama.Edges[i][j].Source == i)
                 {
-                    int eid = mama.edges[i][j].id;
+                    int eid = mama.Edges[i][j].Id;
                     ordered_edge_set tset;
                     unordered_edge_set* eset = &(edomains.domains[eid]);
                     for (auto eit = eset->begin(); eit != eset->end(); eit++)
@@ -855,7 +855,7 @@ public:
                 }
                 else
                 {
-                    int eid = mama.edges[i][j].id;
+                    int eid = mama.Edges[i][j].Id;
                     ordered_edge_set tset;
                     unordered_edge_set* eset = &(edomains.domains[eid]);
                     for (auto eit = eset->begin(); eit != eset->end(); eit++)
@@ -886,7 +886,7 @@ public:
         auto f_domains = new int*[NumOfQueryVertex];
         for (int si = 0; si < NumOfQueryVertex; si++)
         {
-            if (mama.edges_sizes[si] == 0)
+            if (mama.EdgeSizes[si] == 0)
             {
                 int n = map_state_to_node[si];
                 f_domains[si] = new int[domains_size[n]];
@@ -948,17 +948,17 @@ public:
                 for (int l = 0; l < mama.nof_leafs; l++)
                 {
                     int pstate;
-                    eid = mama.edges[StateIndex + l][0].id;
+                    eid = mama.Edges[StateIndex + l][0].Id;
 
-                    if (mama.edges[StateIndex + l][0].source == StateIndex + l)
+                    if (mama.Edges[StateIndex + l][0].Source == StateIndex + l)
                     {
-                        pnode = solution[mama.edges[StateIndex + l][0].target];
-                        pstate = mama.edges[StateIndex + l][0].target;
+                        pnode = solution[mama.Edges[StateIndex + l][0].Target];
+                        pstate = mama.Edges[StateIndex + l][0].Target;
                     }
                     else
                     {
-                        pnode = solution[mama.edges[StateIndex + l][0].source];
-                        pstate = mama.edges[StateIndex + l][0].source;
+                        pnode = solution[mama.Edges[StateIndex + l][0].Source];
+                        pstate = mama.Edges[StateIndex + l][0].Source;
                     }
 
                     candidateITpnode[StateIndex + l] = pnode;
@@ -1019,25 +1019,25 @@ public:
 
                 if (candidateIT[StateIndex] == -1)
                 {
-                    if (mama.edges_sizes[StateIndex] == 0)
+                    if (mama.EdgeSizes[StateIndex] == 0)
                     {
                         candidateIT[StateIndex] = -1;
                         candidateITsize[StateIndex] = domains_size[map_state_to_node[StateIndex]];
                     }
-                    else if (mama.edges_sizes[StateIndex] == 1)
+                    else if (mama.EdgeSizes[StateIndex] == 1)
                     {
                         int pstate;
-                        eid = mama.edges[StateIndex][0].id;
+                        eid = mama.Edges[StateIndex][0].Id;
 
-                        if (mama.edges[StateIndex][0].source == StateIndex)
+                        if (mama.Edges[StateIndex][0].Source == StateIndex)
                         {
-                            pnode = solution[mama.edges[StateIndex][0].target];
-                            pstate = mama.edges[StateIndex][0].target;
+                            pnode = solution[mama.Edges[StateIndex][0].Target];
+                            pstate = mama.Edges[StateIndex][0].Target;
                         }
                         else
                         {
-                            pnode = solution[mama.edges[StateIndex][0].source];
-                            pstate = mama.edges[StateIndex][0].source;
+                            pnode = solution[mama.Edges[StateIndex][0].Source];
+                            pstate = mama.Edges[StateIndex][0].Source;
                         }
 
                         candidateITpnode[StateIndex] = pnode;
@@ -1052,16 +1052,16 @@ public:
                     {
                         maxp = -1;
                         int pstate;
-                        for (int j = 0; j < mama.edges_sizes[StateIndex]; j++)
+                        for (int j = 0; j < mama.EdgeSizes[StateIndex]; j++)
                         {
-                            eid = mama.edges[StateIndex][j].id;
-                            if (mama.edges[StateIndex][j].source == StateIndex)
+                            eid = mama.Edges[StateIndex][j].Id;
+                            if (mama.Edges[StateIndex][j].Source == StateIndex)
                             {
-                                pnode = solution[mama.edges[StateIndex][j].target];
+                                pnode = solution[mama.Edges[StateIndex][j].Target];
                             }
                             else
                             {
-                                pnode = solution[mama.edges[StateIndex][j].source];
+                                pnode = solution[mama.Edges[StateIndex][j].Source];
                             }
 
                             if ((maxp == -1) || (ce_counter[std::make_pair(pnode, eid)] > maxpcount))
@@ -1070,13 +1070,13 @@ public:
                                 maxe = eid;
                                 maxpcount = ce_counter[std::make_pair(pnode, eid)];
 
-                                if (mama.edges[StateIndex][j].source == StateIndex)
+                                if (mama.Edges[StateIndex][j].Source == StateIndex)
                                 {
-                                    pstate = mama.edges[StateIndex][j].target;
+                                    pstate = mama.Edges[StateIndex][j].Target;
                                 }
                                 else
                                 {
-                                    pstate = mama.edges[StateIndex][j].source;
+                                    pstate = mama.Edges[StateIndex][j].Source;
                                 }
                             }
                         }
@@ -1092,7 +1092,7 @@ public:
                     }
                 }
 
-                if (mama.edges_sizes[StateIndex] == 0)
+                if (mama.EdgeSizes[StateIndex] == 0)
                 {
                     candidateIT[StateIndex]++;
                     while (candidateIT[StateIndex] < candidateITsize[StateIndex])
@@ -1137,14 +1137,14 @@ public:
                                 CandidateIndex = ordered_edge_domains[candidateITeid[StateIndex]][candidateIT[StateIndex] + candidateITsize[StateIndex]];
                                 solution[StateIndex] = CandidateIndex;
 
-                                if (mama.edges_sizes[StateIndex] > 1)
+                                if (mama.EdgeSizes[StateIndex] > 1)
                                 {
 
                                     bool checked = true;
-                                    for (int me = 0; me < mama.edges_sizes[StateIndex]; me++)
+                                    for (int me = 0; me < mama.EdgeSizes[StateIndex]; me++)
                                     {
                                         //Hyaniner: Calculation counting point B
-                                        if (edomains.domains[mama.edges[StateIndex][me].id].count(std::pair<int, int>(solution[mama.edges[StateIndex][me].source], solution[mama.edges[StateIndex][me].target])) == 0)
+                                        if (edomains.domains[mama.Edges[StateIndex][me].Id].count(std::pair<int, int>(solution[mama.Edges[StateIndex][me].Source], solution[mama.Edges[StateIndex][me].Target])) == 0)
                                         {
                                             checked = false;
                                             break;

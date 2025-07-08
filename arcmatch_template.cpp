@@ -283,7 +283,7 @@ int match(
 
     //read the query
     //load_s_q=start_time();
-    FAmGraph* query = new FAmGraph();
+    FRiGraph* query = new FRiGraph();
     rret = read_graph(queryfile.c_str(), query, filetype);
     //load_t_q+=end_time(load_s_q);
     if (rret != 0)
@@ -305,10 +305,10 @@ int match(
     {
 #ifdef PRINT_MATCHES
         //if you want to print found matches on screen
-        FAmMatchListener* matchListener = new FAmConsoleMatchListener();
+        FRiMatchListener* matchListener = new FAmConsoleMatchListener();
 #else
         //do not print matches
-        FAmMatchListener* matchListener = new FAmEmptyMatchListener();
+        FRiMatchListener* matchListener = new FAmEmptyMatchListener();
 #endif
 
         int i = 0;
@@ -317,7 +317,7 @@ int match(
         {
             //for each reference graph in the file
             //load_s=start_time();
-            FAmGraph* rrg = new FAmGraph();
+            FRiGraph* rrg = new FRiGraph();
             //read the graph
 #ifdef MDEBUG
             std::cout << "reading reference...\n";
@@ -419,36 +419,36 @@ int match(
 
                         //MatchingMachine* mama = new MaMaConstrFirstDs(*query, domains, domains_size);
 #ifdef MAMA_1
-                        FAmMatchingMachine* mama = new FAmMaMaConstrFirstDs(*query, domains, domains_size);
+                        FRiMatchingMachine* mama = new FAmMaMaConstrFirstDs(*query, domains, domains_size);
 #endif
 
 #ifdef MAMA_0
-                        FAmMatchingMachine* mama = new FAmMaMaConstrFirstEDs(*query, domains, domains_size, edomains);
+                        FRiMatchingMachine* mama = new FAmMaMaConstrFirstEDs(*query, domains, domains_size, edomains);
 #endif
 
 #ifdef MAMA_FC
-                        FAmMatchingMachine* mama = new FAmMaMaFloodCore(*query, domains, domains_size, edomains, query->NumOfVertex);
+                        FRiMatchingMachine* mama = new FAmMaMaFloodCore(*query, domains, domains_size, edomains, query->NumOfVertex);
 #endif
 
 #ifdef MAMA_AC
-                        FAmMatchingMachine* mama = new FAmMaMaAngularCoefficient(*query, domains, domains_size, edomains);
+                        FRiMatchingMachine* mama = new FAmMaMaAngularCoefficient(*query, domains, domains_size, edomains);
 #endif
 
 #ifdef MAMA_NS
-                        FAmMatchingMachine* mama = new FAmMaMaConstrFirstNodeSets(*query, domains, domains_size);
+                        FRiMatchingMachine* mama = new FAmMaMaConstrFirstNodeSets(*query, domains, domains_size);
 #endif
 
 #ifdef MAMA_NSL
-                        FAmMatchingMachine* mama = new FAmMaMaConstrFirstNodeSetsLeafs(*query, domains, domains_size);
+                        FRiMatchingMachine* mama = new FAmMaMaConstrFirstNodeSetsLeafs(*query, domains, domains_size);
 #endif
 
 #ifdef MAMA_CC
-                        FAmMatchingMachine* mama = new FAmMaMaConstrFirstNSCC(*query, domains, domains_size, *nodeComparator, *edgeComparator);
+                        FRiMatchingMachine* mama = new FAmMaMaConstrFirstNSCC(*query, domains, domains_size, *nodeComparator, *edgeComparator);
 #endif
 
 
                         //std::cout<<"build mm\n";
-                        mama->build(*query);
+                        mama->Build(*query);
                         //std::cout<<"fix edis mm\n";
                         mama->fix_eids(*query);
                         //make_mama_t+=end_time(make_mama_s);
@@ -458,13 +458,13 @@ int match(
                         std::cout << ":time: make mama " << t_tmp << "\n";
 
                         std::cout << "ordering: ";
-                        for (int ii = 0; ii < mama->nof_sn; ii++)
+                        for (int ii = 0; ii < mama->NumOfQueryVertex; ii++)
                         {
-                            std::cout << mama->map_state_to_node[ii] << "(" << domains_size[mama->map_state_to_node[ii]] << ") ";
+                            std::cout << mama->StateToQueryVertex[ii] << "(" << domains_size[mama->StateToQueryVertex[ii]] << ") ";
                         }
                         std::cout << "\n";
                         std::cout << "domain sizes: ";
-                        for (int ii = 0; ii < mama->nof_sn; ii++)
+                        for (int ii = 0; ii < mama->NumOfQueryVertex; ii++)
                         {
                             std::cout << ii << "[" << domains_size[ii] << "] ";
                         }

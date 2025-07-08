@@ -41,7 +41,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace rilib
 {
-class FAmMaMaConstrFirstNodeSets : public FAmMatchingMachine
+class FAmMaMaConstrFirstNodeSets : public FRiMatchingMachine
 {
     enum NodeFlag { NS_CORE, NS_CNEIGH, NS_UNV };
 
@@ -49,43 +49,43 @@ class FAmMaMaConstrFirstNodeSets : public FAmMatchingMachine
     int* domains_size;
 
 public:
-    FAmMaMaConstrFirstNodeSets(FAmGraph& query, FAmsbitset* _domains, int* _domains_size)
-        : FAmMatchingMachine(query)
+    FAmMaMaConstrFirstNodeSets(FRiGraph& query, FAmsbitset* _domains, int* _domains_size)
+        : FRiMatchingMachine(query)
         , domains(_domains)
         , domains_size(_domains_size)
     {
     }
 
-    virtual void build(FAmGraph& ssg)
+    virtual void Build(FRiGraph& ssg)
     {
-        NodeFlag* node_flags = new NodeFlag[nof_sn]; // indexed by node_id
-        for (int i = 0; i < nof_sn; i++)
+        NodeFlag* node_flags = new NodeFlag[NumOfQueryVertex]; // indexed by node_id
+        for (int i = 0; i < NumOfQueryVertex; i++)
         {
             node_flags[i] = NS_UNV;
         }
 
         int si = 0;
-        for (int i = 0; i < nof_sn; i++)
+        for (int i = 0; i < NumOfQueryVertex; i++)
         {
             if (domains_size[i] == 1)
             {
 #ifdef MAMACONSTRFIRSTNODESETS_H_MDEBUG
                 std::cout << "ssi[" << si << "] = " << i << "\n";
 #endif
-                push_node_to_core(i, si, node_flags, ssg, map_state_to_node, map_node_to_state);
+                push_node_to_core(i, si, node_flags, ssg, StateToQueryVertex, QueryVertexToState);
                 si++;
             }
         }
 
 #ifdef MAMACONSTRFIRSTNODESETS_H_MDEBUG
-        for (int i = 0; i < nof_sn; i++)
+        for (int i = 0; i < NumOfQueryVertex; i++)
         {
             std::cout << i << "[" << node_flags[i] << "] ";
         }
         std::cout << "\n";
 #endif
 
-        for (; si < nof_sn; si++)
+        for (; si < NumOfQueryVertex; si++)
         {
 
 #ifdef MAMACONSTRFIRSTNODESETS_H_MDEBUG
@@ -96,7 +96,7 @@ public:
             int current_nid_score[] = {0, 0, 0, 0, 0};
 
 #ifdef MAMACONSTRFIRSTNODESETS_H_MDEBUG
-            for (int nid = 0; nid < nof_sn; nid++)
+            for (int nid = 0; nid < NumOfQueryVertex; nid++)
             {
                 std::cout << nid << "(" << node_flags[nid] << ") ";
                 get_scores(nid, current_nid_score, node_flags, ssg);
@@ -109,7 +109,7 @@ public:
             }
 #endif
 
-            for (int nid = 0; nid < nof_sn; nid++)
+            for (int nid = 0; nid < NumOfQueryVertex; nid++)
             {
                 if (node_flags[nid] == NS_CNEIGH)
                 {
@@ -136,7 +136,7 @@ public:
             if (best_nid == -1)
             {
                 // firs node without singletons or disconnected query
-                for (int nid = 0; nid < nof_sn; nid++)
+                for (int nid = 0; nid < NumOfQueryVertex; nid++)
                 {
                     if (node_flags[nid] == NS_UNV)
                     {
@@ -163,10 +163,10 @@ public:
 #ifdef MAMACONSTRFIRSTNODESETS_H_MDEBUG
             std::cout << "si[" << si << "] = " << best_nid << "\n";
 #endif
-            push_node_to_core(best_nid, si, node_flags, ssg, map_state_to_node, map_node_to_state);
+            push_node_to_core(best_nid, si, node_flags, ssg, StateToQueryVertex, QueryVertexToState);
 
 #ifdef MAMACONSTRFIRSTNODESETS_H_MDEBUG
-            for (int i = 0; i < nof_sn; i++)
+            for (int i = 0; i < NumOfQueryVertex; i++)
             {
                 std::cout << i << "[" << node_flags[i] << "] ";
             }
@@ -175,15 +175,15 @@ public:
         }
 
         int e_count, o_e_count, i_e_count, n, nn;
-        for (int si = 0; si < nof_sn; si++)
+        for (int si = 0; si < NumOfQueryVertex; si++)
         {
 
-            n = map_state_to_node[si];
+            n = StateToQueryVertex[si];
             e_count = 0;
             o_e_count = 0;
             for (int i = 0; i < ssg.OutAdjSizes[n]; i++)
             {
-                if (map_node_to_state[ssg.OutAdjList[n][i]] < si)
+                if (QueryVertexToState[ssg.OutAdjList[n][i]] < si)
                 {
                     e_count++;
                     o_e_count++;
@@ -192,18 +192,18 @@ public:
             i_e_count = 0;
             for (int i = 0; i < ssg.InAdjSizes[n]; i++)
             {
-                if (map_node_to_state[ssg.InAdjList[n][i]] < si)
+                if (QueryVertexToState[ssg.InAdjList[n][i]] < si)
                 {
                     e_count++;
                     i_e_count++;
                 }
             }
 
-            edges_sizes[si] = e_count;
-            o_edges_sizes[si] = o_e_count;
-            i_edges_sizes[si] = i_e_count;
+            EdgeSizes[si] = e_count;
+            OutEdgeSizes[si] = o_e_count;
+            InEdgeSizes[si] = i_e_count;
 
-            edges[si] = new MaMaEdge[e_count];
+            Edges[si] = new FMatchingMachineEdge[e_count];
 
             if (e_count > 0)
             {
@@ -212,19 +212,19 @@ public:
 
                 for (int i = 0; i < ssg.OutAdjSizes[n]; i++)
                 {
-                    if (map_node_to_state[ssg.OutAdjList[n][i]] < si)
+                    if (QueryVertexToState[ssg.OutAdjList[n][i]] < si)
                     {
-                        edges[si][e_count].source = map_node_to_state[n];
-                        edges[si][e_count].target = map_node_to_state[ssg.OutAdjList[n][i]];
+                        Edges[si][e_count].Source = QueryVertexToState[n];
+                        Edges[si][e_count].Target = QueryVertexToState[ssg.OutAdjList[n][i]];
                         e_count++;
                     }
                 }
                 for (int i = 0; i < ssg.InAdjSizes[n]; i++)
                 {
-                    if (map_node_to_state[ssg.InAdjList[n][i]] < si)
+                    if (QueryVertexToState[ssg.InAdjList[n][i]] < si)
                     {
-                        edges[si][e_count].target = map_node_to_state[n];
-                        edges[si][e_count].source = map_node_to_state[ssg.InAdjList[n][i]];
+                        Edges[si][e_count].Target = QueryVertexToState[n];
+                        Edges[si][e_count].Source = QueryVertexToState[ssg.InAdjList[n][i]];
                         e_count++;
                     }
                 }
@@ -233,7 +233,7 @@ public:
     }
 
 private:
-    void push_node_to_core(int nid, int si, NodeFlag* node_flags, FAmGraph& qg, int* map_state_to_node, int* map_node_to_state)
+    void push_node_to_core(int nid, int si, NodeFlag* node_flags, FRiGraph& qg, int* map_state_to_node, int* map_node_to_state)
     {
         node_flags[nid] = NS_CORE;
 
@@ -255,7 +255,7 @@ private:
         map_node_to_state[nid] = si;
     }
 
-    void get_scores(int nid, int* scores, NodeFlag* node_flags, FAmGraph& qg)
+    void get_scores(int nid, int* scores, NodeFlag* node_flags, FRiGraph& qg)
     {
         std::set<int> all;
 

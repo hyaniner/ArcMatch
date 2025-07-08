@@ -44,7 +44,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace rilib
 {
-class FAmMaMaFloodCore : public FAmMatchingMachine
+class FAmMaMaFloodCore : public FRiMatchingMachine
 {
     FAmsbitset* node_domains;
     int* node_domains_size;
@@ -52,8 +52,8 @@ class FAmMaMaFloodCore : public FAmMatchingMachine
     int max_depth;
 
 public:
-    FAmMaMaFloodCore(FAmGraph& query, FAmsbitset* _node_domains, int* _node_domains_size, FAmEdgeDomains& _edomains, int _max_depth)
-        : FAmMatchingMachine(query)
+    FAmMaMaFloodCore(FRiGraph& query, FAmsbitset* _node_domains, int* _node_domains_size, FAmEdgeDomains& _edomains, int _max_depth)
+        : FRiMatchingMachine(query)
         , node_domains(_node_domains)
         , node_domains_size(_node_domains_size)
         , edge_domains(_edomains)
@@ -63,7 +63,7 @@ public:
 
     enum NodeFlag { NS_CORE, NS_CNEIGH, NS_UNV };
 
-    void flood_centrality(FAmGraph& query, int nfs, int inode, double* centrality, double* ccentrality, int* depth, double** o_query_e_weights, double** i_query_e_weights, NodeFlag* node_flags, int max_depth)
+    void flood_centrality(FRiGraph& query, int nfs, int inode, double* centrality, double* ccentrality, int* depth, double** o_query_e_weights, double** i_query_e_weights, NodeFlag* node_flags, int max_depth)
     {
 
         int* queue = new int[nfs];
@@ -212,7 +212,7 @@ public:
         node_flags[inode] = NS_CNEIGH;
     }
 
-    void update_score(int nfs, int inode, FAmGraph& query, double** scores, double* centrality, double* ccentrality, int* depth)
+    void update_score(int nfs, int inode, FRiGraph& query, double** scores, double* centrality, double* ccentrality, int* depth)
     {
         for (int i = 0; i < 5; i++)
         {
@@ -254,7 +254,7 @@ public:
         return ret;
     }
 
-    virtual void build(FAmGraph& query)
+    virtual void Build(FRiGraph& query)
     {
         const int nfs = query.NumOfVertex;
 
@@ -486,21 +486,21 @@ public:
 
         for (int i = 0; i < nfs; i++)
         {
-            map_node_to_state[ordering[i]] = i;
-            map_state_to_node[i] = ordering[i];
-            parent_type[i] = PARENTTYPE_NULL;
-            parent_state[i] = -1;
+            QueryVertexToState[ordering[i]] = i;
+            StateToQueryVertex[i] = ordering[i];
+            ParentType[i] = PARENTTYPE_NULL;
+            ParentState[i] = -1;
         }
 
-        parent_type[0] = PARENTTYPE_NULL;
-        edges_sizes[0] = o_edges_sizes[0] = i_edges_sizes[0] = 0;
-        edges[0] = new MaMaEdge[0];
+        ParentType[0] = PARENTTYPE_NULL;
+        EdgeSizes[0] = OutEdgeSizes[0] = InEdgeSizes[0] = 0;
+        Edges[0] = new FMatchingMachineEdge[0];
 
 #ifdef MDEBUG
         std::cout << "ORDERING\n";
         for (int i = 0; i < nfs; i++)
         {
-            std::cout << i << " " << ordering[i] << " " << map_state_to_node[i] << " " << map_node_to_state[ordering[i]] << "\n";
+            std::cout << i << " " << ordering[i] << " " << StateToQueryVertex[i] << " " << QueryVertexToState[ordering[i]] << "\n";
         }
 #endif
 
@@ -509,55 +509,55 @@ public:
         for (int si = 1; si < nof_sn; si++)
         {
 
-            n = map_state_to_node[si];
+            n = StateToQueryVertex[si];
 
             for (int j = 0; j < query.OutAdjSizes[n]; j++)
             {
                 nn = query.OutAdjList[n][j];
-                if (map_node_to_state[nn] < si)
+                if (QueryVertexToState[nn] < si)
                 {
-                    if (parent_state[si] == -1)
+                    if (ParentState[si] == -1)
                     {
 #ifdef MDEBUG
                         std::cout << "IN:" << n << " <- " << nn << "\n";
 #endif
-                        parent_state[si] = map_node_to_state[nn];
-                        parent_type[si] = PARENTTYPE_IN;
+                        ParentState[si] = QueryVertexToState[nn];
+                        ParentType[si] = PARENTTYPE_IN;
                         break;
                     }
                 }
             }
-            if (parent_state[si] == -1)
+            if (ParentState[si] == -1)
             {
                 for (int j = 0; j < query.InAdjSizes[n]; j++)
                 {
                     nn = query.InAdjList[n][j];
-                    if (map_node_to_state[nn] < si)
+                    if (QueryVertexToState[nn] < si)
                     {
-                        if (parent_state[si] == -1)
+                        if (ParentState[si] == -1)
                         {
 #ifdef MDEBUG
                             std::cout << "OUT:" << n << " <- " << nn << "\n";
 #endif
-                            parent_state[si] = map_node_to_state[nn];
-                            parent_type[si] = PARENTTYPE_OUT;
+                            ParentState[si] = QueryVertexToState[nn];
+                            ParentType[si] = PARENTTYPE_OUT;
                             break;
                         }
                     }
                 }
             }
 #ifdef MDEBUG
-            if (parent_type[si] != PARENTTYPE_NULL)
+            if (ParentType[si] != PARENTTYPE_NULL)
             {
-                std::cout << "P:" << si << " " << n << " " << parent_state[si] << " " << map_state_to_node[parent_state[si]];
-                if (parent_type[si] == PARENTTYPE_OUT)
+                std::cout << "P:" << si << " " << n << " " << ParentState[si] << " " << StateToQueryVertex[ParentState[si]];
+                if (ParentType[si] == PARENTTYPE_OUT)
                     std::cout << " out\n";
                 else
                     std::cout << " in\n";
             }
             else
             {
-                std::cout << "P:" << si << " " << n << " " << parent_state[si] << " NULL\n";;
+                std::cout << "P:" << si << " " << n << " " << ParentState[si] << " NULL\n";;
             }
 #endif
             e_count = 0;
@@ -565,7 +565,7 @@ public:
             std::vector<std::tuple<double, int, int>> crdeges;
             for (int i = 0; i < query.OutAdjSizes[n]; i++)
             {
-                if (map_node_to_state[query.OutAdjList[n][i]] < si)
+                if (QueryVertexToState[query.OutAdjList[n][i]] < si)
                 {
                     e_count++;
                     o_e_count++;
@@ -576,7 +576,7 @@ public:
 
             for (int i = 0; i < query.InAdjSizes[n]; i++)
             {
-                if (map_node_to_state[query.InAdjList[n][i]] < si)
+                if (QueryVertexToState[query.InAdjList[n][i]] < si)
                 {
                     e_count++;
                     i_e_count++;
@@ -585,11 +585,11 @@ public:
                 }
             }
 
-            edges_sizes[si] = e_count;
-            o_edges_sizes[si] = o_e_count;
-            i_edges_sizes[si] = i_e_count;
+            EdgeSizes[si] = e_count;
+            OutEdgeSizes[si] = o_e_count;
+            InEdgeSizes[si] = i_e_count;
 
-            edges[si] = new MaMaEdge[e_count];
+            Edges[si] = new FMatchingMachineEdge[e_count];
 
             if (e_count > 0)
             {
@@ -602,23 +602,23 @@ public:
                 {
                     if (std::get<2>(*it) == 0)
                     {
-                        edges[si][e_count].source = map_node_to_state[n];
-                        edges[si][e_count].target = map_node_to_state[std::get<1>(*it)];
+                        Edges[si][e_count].Source = QueryVertexToState[n];
+                        Edges[si][e_count].Target = QueryVertexToState[std::get<1>(*it)];
 
 #ifdef MDEBUG
                         std::cout << n << " " << std::get<1>(*it) << "\n";
-                        std::cout << edges[si][e_count].source << " " << edges[si][e_count].target << "-----++++++<\n";
+                        std::cout << Edges[si][e_count].Source << " " << Edges[si][e_count].Target << "-----++++++<\n";
 #endif
                         e_count++;
                     }
                     else
                     {
-                        edges[si][e_count].target = map_node_to_state[n];
-                        edges[si][e_count].source = map_node_to_state[std::get<1>(*it)];
+                        Edges[si][e_count].Target = QueryVertexToState[n];
+                        Edges[si][e_count].Source = QueryVertexToState[std::get<1>(*it)];
 
 #ifdef MDEBUG
                         std::cout << n << " " << std::get<1>(*it) << "\n";
-                        std::cout << edges[si][e_count].source << " " << edges[si][e_count].target << "-----++++++<\n";
+                        std::cout << Edges[si][e_count].Source << " " << Edges[si][e_count].Target << "-----++++++<\n";
 #endif
                         e_count++;
                     }

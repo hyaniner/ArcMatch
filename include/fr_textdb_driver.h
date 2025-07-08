@@ -49,17 +49,17 @@ enum GRAPH_FILE_TYPE { GFT_GFU, GFT_GFD, GFT_EGFU, GFT_EGFD, GFT_LAD };
 
 #define STR_READ_LENGTH 256
 
-int read_gfu(const char *fileName, FileReader *fd, FAmGraph *graph);
-int read_gfd(const char *fileName, FileReader *fd, FAmGraph *graph);
-int read_egfu(const char *fileName, FileReader *fd, FAmGraph *graph);
-int read_egfd(const char *fileName, FileReader *fd, FAmGraph *graph);
+int read_gfu(const char *fileName, FileReader *fd, FRiGraph *graph);
+int read_gfd(const char *fileName, FileReader *fd, FRiGraph *graph);
+int read_egfu(const char *fileName, FileReader *fd, FRiGraph *graph);
+int read_egfd(const char *fileName, FileReader *fd, FRiGraph *graph);
 
 FileReader *open_file(const char *filename, enum GRAPH_FILE_TYPE type) {
     FileReader *fd = new FileReader(filename);
     return fd;
 };
 
-int read_dbgraph(const char *filename, FileReader *fd, FAmGraph *g, enum GRAPH_FILE_TYPE type) {
+int read_dbgraph(const char *filename, FileReader *fd, FRiGraph *g, enum GRAPH_FILE_TYPE type) {
     int ret = 0;
     switch (type) {
     case GFT_GFU:
@@ -79,7 +79,7 @@ int read_dbgraph(const char *filename, FileReader *fd, FAmGraph *g, enum GRAPH_F
     return ret;
 };
 
-int read_graph(const char *filename, FAmGraph *g, enum GRAPH_FILE_TYPE type) {
+int read_graph(const char *filename, FRiGraph *g, enum GRAPH_FILE_TYPE type) {
     FileReader *fd = new FileReader(filename);
     if (fd == NULL) {
         printf("ERROR: Cannot open input file %s\n", filename);
@@ -112,7 +112,7 @@ struct gr_neighs_t {
     gr_neighs_t *next;
 };
 
-int read_gfu(const char *fileName, FileReader *fd, FAmGraph *graph) {
+int read_gfu(const char *fileName, FileReader *fd, FRiGraph *graph) {
     //TIMEHANDLE time_s;
     //double time_e;
 
@@ -245,7 +245,7 @@ int read_gfu(const char *fileName, FileReader *fd, FAmGraph *graph) {
     return 0;
 };
 
-int read_gfd(const char *fileName, FileReader *fd, FAmGraph *graph) {
+int read_gfd(const char *fileName, FileReader *fd, FRiGraph *graph) {
     char str[STR_READ_LENGTH];
     int i, j;
 
@@ -327,7 +327,7 @@ struct egr_neighs_t {
     std::string *label;
 };
 
-int read_egfu(const char *fileName, FileReader *fd, FAmGraph *graph) {
+int read_egfu(const char *fileName, FileReader *fd, FRiGraph *graph) {
     char str[STR_READ_LENGTH];
     int i, j;
 
@@ -452,7 +452,7 @@ int read_egfu(const char *fileName, FileReader *fd, FAmGraph *graph) {
     return 0;
 };
 
-int read_egfd(const char *fileName, FileReader *fd, FAmGraph *graph) {
+int read_egfd(const char *fileName, FileReader *fd, FRiGraph *graph) {
     std::cout << "reading............\n";
 
     char str[STR_READ_LENGTH];

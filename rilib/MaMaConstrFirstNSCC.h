@@ -43,7 +43,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace rilib
 {
-class FAmMaMaConstrFirstNSCC : public FAmMatchingMachine
+class FAmMaMaConstrFirstNSCC : public FRiMatchingMachine
 {
     enum NodeFlag { NS_CORE, NS_CNEIGH, NS_UNV };
 
@@ -54,8 +54,8 @@ class FAmMaMaConstrFirstNSCC : public FAmMatchingMachine
     FAmAttributeComparator& edgeComparator;
 
 public:
-    FAmMaMaConstrFirstNSCC(FAmGraph& query, FAmsbitset* _domains, int* _domains_size, FAmAttributeComparator& _nodeComparator, FAmAttributeComparator& _edgeComparator)
-        : FAmMatchingMachine(query)
+    FAmMaMaConstrFirstNSCC(FRiGraph& query, FAmsbitset* _domains, int* _domains_size, FAmAttributeComparator& _nodeComparator, FAmAttributeComparator& _edgeComparator)
+        : FRiMatchingMachine(query)
         , domains(_domains)
         , domains_size(_domains_size)
         , nodeComparator(_nodeComparator)
@@ -63,42 +63,42 @@ public:
     {
     }
 
-    void build(FAmGraph& ssg) override
+    void Build(FRiGraph& ssg) override
     {
-        auto node_flags = new NodeFlag[nof_sn]; // indexed by node_id
-        for (int i = 0; i < nof_sn; i++)
+        auto node_flags = new NodeFlag[NumOfQueryVertex]; // indexed by node_id
+        for (int i = 0; i < NumOfQueryVertex; i++)
         {
             node_flags[i] = NS_UNV;
 
             // used for recognizing core compatibility parents
-            parent_state[i] = -1;
+            ParentState[i] = -1;
         }
 
         int si = 0;
-        for (int i = 0; i < nof_sn; i++)
+        for (int i = 0; i < NumOfQueryVertex; i++)
         {
             if (domains_size[i] == 1)
             {
                 std::cout << "ssi[" << si << "] = " << i << "\n";
-                push_node_to_core(i, si, node_flags, ssg, map_state_to_node, map_node_to_state);
+                push_node_to_core(i, si, node_flags, ssg, StateToQueryVertex, QueryVertexToState);
                 si++;
             }
         }
 
-        for (int i = 0; i < nof_sn; i++)
+        for (int i = 0; i < NumOfQueryVertex; i++)
         {
             std::cout << i << "[" << node_flags[i] << "] ";
         }
         std::cout << "\n";
 
-        for (; si < nof_sn; si++)
+        for (; si < NumOfQueryVertex; si++)
         {
             std::cout << "SI[" << si << "]\n";
             int best_nid = -1;
             int best_nid_score[] = {0, 0, 0, 0, 0};
             int current_nid_score[] = {0, 0, 0, 0, 0};
 
-            for (int nid = 0; nid < nof_sn; nid++)
+            for (int nid = 0; nid < NumOfQueryVertex; nid++)
             {
                 std::cout << nid << "(" << node_flags[nid] << ") ";
                 get_scores(nid, current_nid_score, node_flags, ssg);
@@ -110,7 +110,7 @@ public:
                 std::cout << "]\n";
             }
 
-            for (int nid = 0; nid < nof_sn; nid++)
+            for (int nid = 0; nid < NumOfQueryVertex; nid++)
             {
                 if (node_flags[nid] == NS_CNEIGH)
                 {
@@ -137,7 +137,7 @@ public:
             if (best_nid == -1)
             {
                 // firs node without singletons or disconnected query
-                for (int nid = 0; nid < nof_sn; nid++)
+                for (int nid = 0; nid < NumOfQueryVertex; nid++)
                 {
                     if (node_flags[nid] == NS_UNV)
                     {
@@ -166,7 +166,7 @@ public:
             std::set<int> cascade;
             if (best_nid_score[0] > 0)
             {
-                for (int i = 0; i < nof_sn; i++)
+                for (int i = 0; i < NumOfQueryVertex; i++)
                 {
                     if ((i != best_nid) && (node_flags[i] == NS_CNEIGH))
                     {
@@ -178,7 +178,7 @@ public:
                 }
             }
 
-            push_node_to_core(best_nid, si, node_flags, ssg, map_state_to_node, map_node_to_state);
+            push_node_to_core(best_nid, si, node_flags, ssg, StateToQueryVertex, QueryVertexToState);
 
             std::cout << "core compatible: ";
             for (auto& i : cascade)
@@ -190,11 +190,11 @@ public:
             for (auto& i : cascade)
             {
                 si++;
-                push_node_to_core(i, si, node_flags, ssg, map_state_to_node, map_node_to_state);
-                parent_state[si] = osi;
+                push_node_to_core(i, si, node_flags, ssg, StateToQueryVertex, QueryVertexToState);
+                ParentState[si] = osi;
             }
 
-            for (int i = 0; i < nof_sn; i++)
+            for (int i = 0; i < NumOfQueryVertex; i++)
             {
                 std::cout << i << "[" << node_flags[i] << "] ";
             }
@@ -202,15 +202,15 @@ public:
         }
 
         int e_count, o_e_count, i_e_count, n, nn;
-        for (int si = 0; si < nof_sn; si++)
+        for (int si = 0; si < NumOfQueryVertex; si++)
         {
 
-            n = map_state_to_node[si];
+            n = StateToQueryVertex[si];
             e_count = 0;
             o_e_count = 0;
             for (int i = 0; i < ssg.OutAdjSizes[n]; i++)
             {
-                if (map_node_to_state[ssg.OutAdjList[n][i]] < si)
+                if (QueryVertexToState[ssg.OutAdjList[n][i]] < si)
                 {
                     e_count++;
                     o_e_count++;
@@ -219,18 +219,18 @@ public:
             i_e_count = 0;
             for (int i = 0; i < ssg.InAdjSizes[n]; i++)
             {
-                if (map_node_to_state[ssg.InAdjList[n][i]] < si)
+                if (QueryVertexToState[ssg.InAdjList[n][i]] < si)
                 {
                     e_count++;
                     i_e_count++;
                 }
             }
 
-            edges_sizes[si] = e_count;
-            o_edges_sizes[si] = o_e_count;
-            i_edges_sizes[si] = i_e_count;
+            EdgeSizes[si] = e_count;
+            OutEdgeSizes[si] = o_e_count;
+            InEdgeSizes[si] = i_e_count;
 
-            edges[si] = new MaMaEdge[e_count];
+            Edges[si] = new FMatchingMachineEdge[e_count];
 
             if (e_count > 0)
             {
@@ -239,19 +239,19 @@ public:
 
                 for (int i = 0; i < ssg.OutAdjSizes[n]; i++)
                 {
-                    if (map_node_to_state[ssg.OutAdjList[n][i]] < si)
+                    if (QueryVertexToState[ssg.OutAdjList[n][i]] < si)
                     {
-                        edges[si][e_count].source = map_node_to_state[n];
-                        edges[si][e_count].target = map_node_to_state[ssg.OutAdjList[n][i]];
+                        Edges[si][e_count].Source = QueryVertexToState[n];
+                        Edges[si][e_count].Target = QueryVertexToState[ssg.OutAdjList[n][i]];
                         e_count++;
                     }
                 }
                 for (int i = 0; i < ssg.InAdjSizes[n]; i++)
                 {
-                    if (map_node_to_state[ssg.InAdjList[n][i]] < si)
+                    if (QueryVertexToState[ssg.InAdjList[n][i]] < si)
                     {
-                        edges[si][e_count].target = map_node_to_state[n];
-                        edges[si][e_count].source = map_node_to_state[ssg.InAdjList[n][i]];
+                        Edges[si][e_count].Target = QueryVertexToState[n];
+                        Edges[si][e_count].Source = QueryVertexToState[ssg.InAdjList[n][i]];
                         e_count++;
                     }
                 }
@@ -260,7 +260,7 @@ public:
     }
 
 private:
-    void push_node_to_core(int nid, int si, NodeFlag* node_flags, FAmGraph& qg, int* map_state_to_node, int* map_node_to_state)
+    void push_node_to_core(int nid, int si, NodeFlag* node_flags, FRiGraph& qg, int* map_state_to_node, int* map_node_to_state)
     {
         node_flags[nid] = NS_CORE;
 
@@ -282,7 +282,7 @@ private:
         map_node_to_state[nid] = si;
     }
 
-    void get_scores(int nid, int* scores, NodeFlag* node_flags, FAmGraph& qg)
+    void get_scores(int nid, int* scores, NodeFlag* node_flags, FRiGraph& qg)
     {
         std::set<int> all;
 
@@ -348,7 +348,7 @@ private:
         return n2 - n1;
     }
 
-    bool are_core_compatible(int nid1, int nid2, NodeFlag* node_flags, FAmGraph& qg)
+    bool are_core_compatible(int nid1, int nid2, NodeFlag* node_flags, FRiGraph& qg)
     {
         if (nodeComparator.compare(qg.VertexAttributes[nid1], qg.VertexAttributes[nid2]))
         {

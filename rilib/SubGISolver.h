@@ -34,15 +34,22 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "Solver.h"
 
-namespace rilib {
+namespace rilib
+{
+class FAmSubGISolver : public FAmSolver
+{
+public:
+    FAmSubGISolver(FRiMatchingMachine& _mama, FRiGraph& _rgraph, FRiGraph& _qgraph, FAmAttributeComparator& _nodeComparator, FAmAttributeComparator& _edgeComparator, FRiMatchListener& _matchListener, FAmsbitset* _domains, int* _domains_size
+                   , FAmEdgeDomains& _edomains)
+        : FAmSolver(_mama, _rgraph, _qgraph, _nodeComparator, _edgeComparator, _matchListener, _domains, _domains_size, _edomains)
+    {
+    }
 
-class FAmSubGISolver : public FAmSolver {
-  public:
-    FAmSubGISolver(FAmMatchingMachine &_mama, FAmGraph &_rgraph, FAmGraph &_qgraph, FAmAttributeComparator &_nodeComparator, FAmAttributeComparator &_edgeComparator, FAmMatchListener &_matchListener, FAmsbitset *_domains, int *_domains_size, FAmEdgeDomains &_edomains) : FAmSolver(_mama, _rgraph, _qgraph, _nodeComparator, _edgeComparator, _matchListener, _domains, _domains_size, _edomains) {}
-
-    virtual bool edgesCheck(int si, int ci, int *solution, bool *matched) { return true; }
+    virtual bool edgesCheck(int si, int ci, int* solution, bool* matched)
+    {
+        return true;
+    }
 };
-
 } // namespace rilib
 
 #endif /* SUBGISOLVER_H_ */

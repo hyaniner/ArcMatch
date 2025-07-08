@@ -39,7 +39,7 @@ namespace rilib
 class FAmInducedSubGISolver : public FAmSolver
 {
 public:
-    FAmInducedSubGISolver(FAmMatchingMachine& _mama, FAmGraph& _rgraph, FAmGraph& _qgraph, FAmAttributeComparator& _nodeComparator, FAmAttributeComparator& _edgeComparator, FAmMatchListener& _matchListener, FAmsbitset* _domains, int* _domains_size
+    FAmInducedSubGISolver(FRiMatchingMachine& _mama, FRiGraph& _rgraph, FRiGraph& _qgraph, FAmAttributeComparator& _nodeComparator, FAmAttributeComparator& _edgeComparator, FRiMatchListener& _matchListener, FAmsbitset* _domains, int* _domains_size
                        , FAmEdgeDomains& _edomains)
         : FAmSolver(_mama, _rgraph, _qgraph, _nodeComparator, _edgeComparator, _matchListener, _domains, _domains_size, _edomains)
     {
@@ -56,7 +56,7 @@ public:
             if (matched[rgraph.OutAdjList[ci][ii]])
             {
                 count++;
-                if (count > mama.o_edges_sizes[si])
+                if (count > mama.OutEdgeSizes[si])
                     return false;
             }
         }
@@ -66,7 +66,7 @@ public:
             if (matched[rgraph.InAdjList[ci][ii]])
             {
                 count++;
-                if (count > mama.i_edges_sizes[si])
+                if (count > mama.InEdgeSizes[si])
                     return false;
             }
         }
