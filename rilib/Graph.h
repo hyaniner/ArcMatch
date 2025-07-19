@@ -34,7 +34,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace rilib
 {
-class FRiGraph
+class FNbrArcMatchGraph
 {
 public:
     int NumOfVertex;
@@ -48,7 +48,7 @@ public:
     int** InAdjList;
     void*** OutAdjAttributes;
 
-    FRiGraph()
+    FNbrArcMatchGraph()
     {
 
         NumOfVertex = 0;

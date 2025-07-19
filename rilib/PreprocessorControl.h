@@ -1,8 +1,9 @@
 #pragma once
 
+#define PRINT_MATCHES
 
 #ifndef ARC_MATCH_CONTROL
-    # define ARC_MATCH_CONTROL 7
+    # define ARC_MATCH_CONTROL 3
 
     #if ARC_MATCH_CONTROL == 1
     	#define MAMA_1

@@ -48,7 +48,7 @@ typedef u_size_t sbitset_block;
  * At least one empty block ever
  */
 
-class FAmsbitset
+class FArcMatchSBitSet
 {
     static const size_t bytes_per_block = sizeof(sbitset_block);
     static const size_t bits_per_block = sizeof(sbitset_block) * 8;
@@ -58,27 +58,27 @@ public:
     size_t _nblocks;
 
 public:
-    FAmsbitset()
+    FArcMatchSBitSet()
     {
         _bits = (sbitset_block*)calloc(1, bytes_per_block);
         _nblocks = 1;
     }
 
-    FAmsbitset(const FAmsbitset& c)
+    FArcMatchSBitSet(const FArcMatchSBitSet& c)
     {
         _bits = (sbitset_block*)malloc(c._nblocks * bytes_per_block);
         memcpy(_bits, c._bits, c._nblocks * bytes_per_block);
         _nblocks = c._nblocks;
     }
 
-    FAmsbitset(FAmsbitset& c)
+    FArcMatchSBitSet(FArcMatchSBitSet& c)
     {
         _bits = (sbitset_block*)malloc(c._nblocks * bytes_per_block);
         memcpy(_bits, c._bits, c._nblocks * bytes_per_block);
         _nblocks = c._nblocks;
     }
 
-    ~FAmsbitset()
+    ~FArcMatchSBitSet()
     {
         free(_bits);
     }
@@ -195,7 +195,7 @@ public:
         }
     }
 
-    FAmsbitset& operator&=(FAmsbitset& bs)
+    FArcMatchSBitSet& operator&=(FArcMatchSBitSet& bs)
     {
         size_t wblokcs = _nblocks <= bs._nblocks ? _nblocks : bs._nblocks;
         for (size_t i = 0; i < wblokcs; i++)
@@ -205,7 +205,7 @@ public:
         return *this;
     }
 
-    FAmsbitset& operator|=(FAmsbitset& bs)
+    FArcMatchSBitSet& operator|=(FArcMatchSBitSet& bs)
     {
         size_t wblokcs = _nblocks <= bs._nblocks ? _nblocks : bs._nblocks;
         for (size_t i = 0; i < wblokcs; i++)
@@ -219,7 +219,7 @@ public:
         return *this;
     }
 
-    FAmsbitset& operator=(FAmsbitset& b)
+    FArcMatchSBitSet& operator=(FArcMatchSBitSet& b)
     {
         // delete [] _bits;
         free(_bits);
@@ -229,7 +229,7 @@ public:
         return *this;
     }
 
-    bool operator!=(FAmsbitset& b)
+    bool operator!=(FArcMatchSBitSet& b)
     {
         size_t wblokcs = _nblocks <= b._nblocks ? _nblocks : b._nblocks;
         for (size_t i = 0; i < wblokcs; i++)
@@ -262,7 +262,7 @@ public:
         return false;
     }
 
-    bool emptyAND(FAmsbitset& b)
+    bool emptyAND(FArcMatchSBitSet& b)
     {
         size_t wblokcs = _nblocks <= b._nblocks ? _nblocks : b._nblocks;
         for (size_t i = 0; i < wblokcs; i++)
@@ -297,7 +297,7 @@ public:
      */
     class iterator
     {
-        FAmsbitset& _sb;
+        FArcMatchSBitSet& _sb;
         u_size_t _wblock;
         unsigned short _shift;
 
@@ -305,7 +305,7 @@ public:
         u_size_t first; // position
         bool second; // value
     public:
-        iterator(FAmsbitset& sb)
+        iterator(FArcMatchSBitSet& sb)
             : _sb(sb)
         {
             _wblock = 0;
@@ -313,7 +313,7 @@ public:
             get_comps();
         }
 
-        iterator(FAmsbitset& sb, u_size_t wblock)
+        iterator(FArcMatchSBitSet& sb, u_size_t wblock)
             : _sb(sb)
             , _wblock(wblock)
         {

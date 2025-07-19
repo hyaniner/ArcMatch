@@ -42,7 +42,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace rilib
 {
-bool init_domains(FRiGraph& target, FRiGraph& pattern, FAmAttributeComparator& nodeComparator, FAmAttributeComparator& edgeComparator, FAmsbitset* domains, bool iso)
+bool init_domains(FNbrArcMatchGraph& target, FNbrArcMatchGraph& pattern, FNbrArcMatchVertexComparator& nodeComparator, FNbrArcMatchVertexComparator& edgeComparator, FArcMatchSBitSet* domains, bool iso)
 {
 
     if (iso)
@@ -87,7 +87,7 @@ bool init_domains(FRiGraph& target, FRiGraph& pattern, FAmAttributeComparator& n
     for (int qa = 0; qa < pattern.NumOfVertex; qa++)
     {
 
-        for (FAmsbitset::iterator qaIT = domains[qa].first_ones(); qaIT != domains[qa].end(); qaIT.next_ones())
+        for (FArcMatchSBitSet::iterator qaIT = domains[qa].first_ones(); qaIT != domains[qa].end(); qaIT.next_ones())
         {
             ra = qaIT.first;
             // for each edge qa->qb  check if exists ra->rb
@@ -125,7 +125,7 @@ bool init_domains(FRiGraph& target, FRiGraph& pattern, FAmAttributeComparator& n
         changes = false;
         for (int qa = 0; qa < pattern.NumOfVertex; qa++)
         {
-            for (FAmsbitset::iterator qaIT = domains[qa].first_ones(); qaIT != domains[qa].end(); qaIT.next_ones())
+            for (FArcMatchSBitSet::iterator qaIT = domains[qa].first_ones(); qaIT != domains[qa].end(); qaIT.next_ones())
             {
                 ra = qaIT.first;
                 // fore each edge qa->qb  check if exists ra->rb
@@ -159,7 +159,7 @@ bool init_domains(FRiGraph& target, FRiGraph& pattern, FAmAttributeComparator& n
     return true;
 };
 
-struct pair_hash
+struct FNbrPairHash
 {
     inline std::size_t operator()(const std::pair<int, int>& v) const
     {
@@ -167,9 +167,9 @@ struct pair_hash
     }
 };
 
-typedef std::unordered_set<std::pair<int, int>, pair_hash> unordered_edge_set;
+typedef std::unordered_set<std::pair<int, int>, FNbrPairHash> FNbrUnorderedEdgeSet;
 
-class FAmEdgeDomains
+class FNbrArcMatchEdgeDomains
 {
 public:
     int** pattern_out_adj_eids;
@@ -180,14 +180,14 @@ public:
 
     int** pattern_in_adj_eids;
 
-    unordered_edge_set* domains;
+    FNbrUnorderedEdgeSet* domains;
 
-    FAmEdgeDomains()
+    FNbrArcMatchEdgeDomains()
     {
     };
 };
 
-bool init_edomains(FRiGraph& target, FRiGraph& pattern, FAmsbitset* node_domains, FAmAttributeComparator& edgeComparator, FAmEdgeDomains& edomains)
+bool init_edomains(FNbrArcMatchGraph& target, FNbrArcMatchGraph& pattern, FArcMatchSBitSet* node_domains, FNbrArcMatchVertexComparator& edgeComparator, FNbrArcMatchEdgeDomains& edomains)
 {
     int nof_pedges = 0;
     for (int i = 0; i < pattern.NumOfVertex; i++)
@@ -254,7 +254,7 @@ bool init_edomains(FRiGraph& target, FRiGraph& pattern, FAmsbitset* node_domains
         }
     }
 
-    edomains.domains = new unordered_edge_set[nof_pedges];
+    edomains.domains = new FNbrUnorderedEdgeSet[nof_pedges];
 
     /*given a pattern edge, we search for compatible target edges.
     Given a pattern node p_s and a negihborn of it p_t, we look at the aleady computed domain of it.
@@ -270,12 +270,12 @@ bool init_edomains(FRiGraph& target, FRiGraph& pattern, FAmsbitset* node_domains
 
             int pt = pattern.OutAdjList[ps][ps_n];
 
-            for (FAmsbitset::iterator psIT = node_domains[ps].first_ones(); psIT != node_domains[ps].end(); psIT.next_ones())
+            for (FArcMatchSBitSet::iterator psIT = node_domains[ps].first_ones(); psIT != node_domains[ps].end(); psIT.next_ones())
             {
 
                 int ts = psIT.first;
 
-                for (FAmsbitset::iterator ptIT = node_domains[pt].first_ones(); ptIT != node_domains[pt].end(); ptIT.next_ones())
+                for (FArcMatchSBitSet::iterator ptIT = node_domains[pt].first_ones(); ptIT != node_domains[pt].end(); ptIT.next_ones())
                 {
 
                     int tt = ptIT.first;
@@ -302,12 +302,12 @@ bool init_edomains(FRiGraph& target, FRiGraph& pattern, FAmsbitset* node_domains
 class FAmDomainReduction
 {
 public:
-    FRiGraph& query;
-    FAmsbitset* node_domains;
-    FAmEdgeDomains& edge_domains;
+    FNbrArcMatchGraph& query;
+    FArcMatchSBitSet* node_domains;
+    FNbrArcMatchEdgeDomains& edge_domains;
     int nof_target_nodes;
 
-    FAmDomainReduction(FRiGraph& _query, FAmsbitset* ndomains, FAmEdgeDomains& edomains, int noftargetnodes)
+    FAmDomainReduction(FNbrArcMatchGraph& _query, FArcMatchSBitSet* ndomains, FNbrArcMatchEdgeDomains& edomains, int noftargetnodes)
         : query(_query)
         , node_domains(ndomains)
         , edge_domains(edomains)
@@ -323,9 +323,9 @@ public:
         for (int ni = 0; ni < query.OutAdjSizes[altered_q_node]; ni++)
         {
             n = query.OutAdjList[altered_q_node][ni];
-            unordered_edge_set* eset = &(edge_domains.domains[edge_domains.pattern_out_adj_eids[altered_q_node][ni]]);
+            FNbrUnorderedEdgeSet* eset = &(edge_domains.domains[edge_domains.pattern_out_adj_eids[altered_q_node][ni]]);
 
-            for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end();)
+            for (FNbrUnorderedEdgeSet::iterator eit = eset->begin(); eit != eset->end();)
             {
                 if (node_domains[altered_q_node].get(eit->first) == false)
                 {
@@ -342,9 +342,9 @@ public:
         for (int ni = 0; ni < query.InAdjSizes[altered_q_node]; ni++)
         {
             n = query.InAdjList[altered_q_node][ni];
-            unordered_edge_set* eset = &(edge_domains.domains[edge_domains.pattern_in_adj_eids[altered_q_node][ni]]);
+            FNbrUnorderedEdgeSet* eset = &(edge_domains.domains[edge_domains.pattern_in_adj_eids[altered_q_node][ni]]);
 
-            for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end();)
+            for (FNbrUnorderedEdgeSet::iterator eit = eset->begin(); eit != eset->end();)
             {
                 if (node_domains[altered_q_node].get(eit->second) == false)
                 {
@@ -370,8 +370,8 @@ public:
                     for (int ni = 0; ni < query.OutAdjSizes[s]; ni++)
                     {
                         n = query.OutAdjList[s][ni];
-                        unordered_edge_set* eset = &(edge_domains.domains[edge_domains.pattern_out_adj_eids[s][ni]]);
-                        for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end();)
+                        FNbrUnorderedEdgeSet* eset = &(edge_domains.domains[edge_domains.pattern_out_adj_eids[s][ni]]);
+                        for (FNbrUnorderedEdgeSet::iterator eit = eset->begin(); eit != eset->end();)
                         {
                             if ((node_domains[s].get(eit->first) == false) || (node_domains[n].get(eit->second) == false))
                             {
@@ -388,9 +388,9 @@ public:
                 for (int ni = 0; ni < query.InAdjSizes[altered_q_node]; ni++)
                 {
                     n = query.InAdjList[altered_q_node][ni];
-                    unordered_edge_set* eset = &(edge_domains.domains[edge_domains.pattern_in_adj_eids[altered_q_node][ni]]);
+                    FNbrUnorderedEdgeSet* eset = &(edge_domains.domains[edge_domains.pattern_in_adj_eids[altered_q_node][ni]]);
 
-                    for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end();)
+                    for (FNbrUnorderedEdgeSet::iterator eit = eset->begin(); eit != eset->end();)
                     {
                         if (node_domains[altered_q_node].get(eit->second) == false)
                         {
@@ -412,13 +412,13 @@ public:
                         n = query.OutAdjList[s][ni];
 
                         std::set<int> source_set;
-                        unordered_edge_set* eset = &(edge_domains.domains[edge_domains.pattern_out_adj_eids[s][ni]]);
-                        for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end(); eit++)
+                        FNbrUnorderedEdgeSet* eset = &(edge_domains.domains[edge_domains.pattern_out_adj_eids[s][ni]]);
+                        for (FNbrUnorderedEdgeSet::iterator eit = eset->begin(); eit != eset->end(); eit++)
                         {
                             source_set.insert(eit->first);
                         }
 
-                        for (FAmsbitset::iterator dit = node_domains[s].first_ones(); dit != node_domains[s].end(); dit.next_ones())
+                        for (FArcMatchSBitSet::iterator dit = node_domains[s].first_ones(); dit != node_domains[s].end(); dit.next_ones())
                         {
 
                             if (source_set.find(dit.first) == source_set.end())
@@ -434,13 +434,13 @@ public:
                         n = query.InAdjList[s][ni];
 
                         std::set<int> source_set;
-                        unordered_edge_set* eset = &(edge_domains.domains[edge_domains.pattern_in_adj_eids[s][ni]]);
-                        for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end(); eit++)
+                        FNbrUnorderedEdgeSet* eset = &(edge_domains.domains[edge_domains.pattern_in_adj_eids[s][ni]]);
+                        for (FNbrUnorderedEdgeSet::iterator eit = eset->begin(); eit != eset->end(); eit++)
                         {
                             source_set.insert(eit->second);
                         }
 
-                        for (FAmsbitset::iterator dit = node_domains[s].first_ones(); dit != node_domains[s].end(); dit.next_ones())
+                        for (FArcMatchSBitSet::iterator dit = node_domains[s].first_ones(); dit != node_domains[s].end(); dit.next_ones())
                         {
 
                             if (source_set.find(dit.first) == source_set.end())
@@ -463,8 +463,8 @@ public:
         {
             if (circle)
             {
-                unordered_edge_set eset = edge_domains.domains[edge_domains.pattern_out_adj_eids[q_dfs[c_level]][q_dfs_adji[c_level + 1]]];
-                for (unordered_edge_set::iterator eit = eset.begin(); eit != eset.end(); eit++)
+                FNbrUnorderedEdgeSet eset = edge_domains.domains[edge_domains.pattern_out_adj_eids[q_dfs[c_level]][q_dfs_adji[c_level + 1]]];
+                for (FNbrUnorderedEdgeSet::iterator eit = eset.begin(); eit != eset.end(); eit++)
                 {
                     if ((eit->first == c_dfs[c_level]) && (eit->second == c_dfs[0]))
                     {
@@ -475,8 +475,8 @@ public:
             }
             else
             {
-                unordered_edge_set eset = edge_domains.domains[edge_domains.pattern_out_adj_eids[q_dfs[c_level]][q_dfs_adji[c_level + 1]]];
-                for (unordered_edge_set::iterator eit = eset.begin(); eit != eset.end(); eit++)
+                FNbrUnorderedEdgeSet eset = edge_domains.domains[edge_domains.pattern_out_adj_eids[q_dfs[c_level]][q_dfs_adji[c_level + 1]]];
+                for (FNbrUnorderedEdgeSet::iterator eit = eset.begin(); eit != eset.end(); eit++)
                 {
                     if ((eit->first == c_dfs[c_level]) && (!c_visited[eit->second]))
                     {
@@ -489,8 +489,8 @@ public:
         else
         {
             bool found = false;
-            unordered_edge_set eset = edge_domains.domains[edge_domains.pattern_out_adj_eids[q_dfs[c_level]][q_dfs_adji[c_level + 1]]];
-            for (unordered_edge_set::iterator eit = eset.begin(); eit != eset.end(); eit++)
+            FNbrUnorderedEdgeSet eset = edge_domains.domains[edge_domains.pattern_out_adj_eids[q_dfs[c_level]][q_dfs_adji[c_level + 1]]];
+            for (FNbrUnorderedEdgeSet::iterator eit = eset.begin(); eit != eset.end(); eit++)
             {
                 if ((eit->first == c_dfs[c_level]) && (!c_visited[eit->second]))
                 {
@@ -522,7 +522,7 @@ public:
 
             bool removed = false;
             int cnode;
-            for (FAmsbitset::iterator dit = node_domains[q_dfs[0]].first_ones(); dit != node_domains[q_dfs[0]].end(); dit.next_ones())
+            for (FArcMatchSBitSet::iterator dit = node_domains[q_dfs[0]].first_ones(); dit != node_domains[q_dfs[0]].end(); dit.next_ones())
             {
                 cnode = dit.first;
                 c_dfs[0] = cnode;
@@ -635,7 +635,7 @@ public:
         for (int n = 0; n < query.NumOfVertex; n++)
         {
 
-            for (FAmsbitset::iterator nnIT = node_domains[n].first_ones(); nnIT != node_domains[n].end(); nnIT.next_ones())
+            for (FArcMatchSBitSet::iterator nnIT = node_domains[n].first_ones(); nnIT != node_domains[n].end(); nnIT.next_ones())
             {
                 int dn = nnIT.first;
 
@@ -645,8 +645,8 @@ public:
                 {
                     found = false;
 
-                    unordered_edge_set eset = edge_domains.domains[edge_domains.pattern_out_adj_eids[n][ni]];
-                    for (unordered_edge_set::iterator eit = eset.begin(); eit != eset.end(); eit++)
+                    FNbrUnorderedEdgeSet eset = edge_domains.domains[edge_domains.pattern_out_adj_eids[n][ni]];
+                    for (FNbrUnorderedEdgeSet::iterator eit = eset.begin(); eit != eset.end(); eit++)
                     {
                         if (dn == eit->first)
                         {
@@ -666,8 +666,8 @@ public:
                 {
                     found = false;
 
-                    unordered_edge_set eset = edge_domains.domains[edge_domains.pattern_in_adj_eids[n][ni]];
-                    for (unordered_edge_set::iterator eit = eset.begin(); eit != eset.end(); eit++)
+                    FNbrUnorderedEdgeSet eset = edge_domains.domains[edge_domains.pattern_in_adj_eids[n][ni]];
+                    for (FNbrUnorderedEdgeSet::iterator eit = eset.begin(); eit != eset.end(); eit++)
                     {
                         if (dn == eit->second)
                         {
@@ -687,13 +687,13 @@ public:
     };
 };
 
-void print_domains(FRiGraph& query, FRiGraph& target, FAmsbitset* node_domains, FAmEdgeDomains& edge_domains)
+void print_domains(FNbrArcMatchGraph& query, FNbrArcMatchGraph& target, FArcMatchSBitSet* node_domains, FNbrArcMatchEdgeDomains& edge_domains)
 {
     std::cout << "nof query nodes " << query.NumOfVertex << "\n";
     for (int i = 0; i < query.NumOfVertex; i++)
     {
         std::cout << "node domain " << i << ":" << node_domains[i].count_ones() << ": ";
-        for (FAmsbitset::iterator it = node_domains[i].first_ones(); it != node_domains[i].end(); it.next_ones())
+        for (FArcMatchSBitSet::iterator it = node_domains[i].first_ones(); it != node_domains[i].end(); it.next_ones())
         {
         std:
             cout << it.first << " ";
@@ -710,13 +710,13 @@ void print_domains(FRiGraph& query, FRiGraph& target, FAmsbitset* node_domains, 
     }
 };
 
-void print_domains_extended(FRiGraph& query, FRiGraph& target, FAmsbitset* node_domains, FAmEdgeDomains& edge_domains)
+void print_domains_extended(FNbrArcMatchGraph& query, FNbrArcMatchGraph& target, FArcMatchSBitSet* node_domains, FNbrArcMatchEdgeDomains& edge_domains)
 {
     std::cout << "nof query nodes " << query.NumOfVertex << "\n";
     for (int i = 0; i < query.NumOfVertex; i++)
     {
         std::cout << "node domain " << i << ":" << node_domains[i].count_ones() << ": ";
-        for (FAmsbitset::iterator it = node_domains[i].first_ones(); it != node_domains[i].end(); it.next_ones())
+        for (FArcMatchSBitSet::iterator it = node_domains[i].first_ones(); it != node_domains[i].end(); it.next_ones())
         {
         std:
             cout << it.first << " ";
@@ -730,9 +730,9 @@ void print_domains_extended(FRiGraph& query, FRiGraph& target, FAmsbitset* node_
             int eid = edge_domains.pattern_out_adj_eids[n][ni];
             std::cout << "edge domain: " << n << "-" << query.OutAdjList[n][ni] << ":eid " << eid << ":" << edge_domains.domains[eid].size() << "\n";
 
-            unordered_edge_set* eset = &(edge_domains.domains[eid]);
+            FNbrUnorderedEdgeSet* eset = &(edge_domains.domains[eid]);
 
-            for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end(); eit++)
+            for (FNbrUnorderedEdgeSet::iterator eit = eset->begin(); eit != eset->end(); eit++)
             {
                 std::cout << "(" << (*eit).first << "," << (*eit).second << ")";
             }

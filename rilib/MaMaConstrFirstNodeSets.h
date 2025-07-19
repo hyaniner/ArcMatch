@@ -41,22 +41,22 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace rilib
 {
-class FAmMaMaConstrFirstNodeSets : public FRiMatchingMachine
+class FAmMaMaConstrFirstNodeSets : public FNbrArcMatchMatchingMachine
 {
     enum NodeFlag { NS_CORE, NS_CNEIGH, NS_UNV };
 
-    FAmsbitset* domains;
+    FArcMatchSBitSet* domains;
     int* domains_size;
 
 public:
-    FAmMaMaConstrFirstNodeSets(FRiGraph& query, FAmsbitset* _domains, int* _domains_size)
-        : FRiMatchingMachine(query)
+    FAmMaMaConstrFirstNodeSets(FNbrArcMatchGraph& query, FArcMatchSBitSet* _domains, int* _domains_size)
+        : FNbrArcMatchMatchingMachine(query)
         , domains(_domains)
         , domains_size(_domains_size)
     {
     }
 
-    virtual void Build(FRiGraph& ssg)
+    virtual void Build(FNbrArcMatchGraph& ssg)
     {
         NodeFlag* node_flags = new NodeFlag[NumOfQueryVertex]; // indexed by node_id
         for (int i = 0; i < NumOfQueryVertex; i++)
@@ -203,7 +203,7 @@ public:
             OutEdgeSizes[si] = o_e_count;
             InEdgeSizes[si] = i_e_count;
 
-            Edges[si] = new FMatchingMachineEdge[e_count];
+            Edges[si] = new FNbrArcMatchMaMaEdge[e_count];
 
             if (e_count > 0)
             {
@@ -233,7 +233,7 @@ public:
     }
 
 private:
-    void push_node_to_core(int nid, int si, NodeFlag* node_flags, FRiGraph& qg, int* map_state_to_node, int* map_node_to_state)
+    void push_node_to_core(int nid, int si, NodeFlag* node_flags, FNbrArcMatchGraph& qg, int* map_state_to_node, int* map_node_to_state)
     {
         node_flags[nid] = NS_CORE;
 
@@ -255,7 +255,7 @@ private:
         map_node_to_state[nid] = si;
     }
 
-    void get_scores(int nid, int* scores, NodeFlag* node_flags, FRiGraph& qg)
+    void get_scores(int nid, int* scores, NodeFlag* node_flags, FNbrArcMatchGraph& qg)
     {
         std::set<int> all;
 

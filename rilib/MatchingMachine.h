@@ -37,7 +37,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace rilib
 {
-class FMatchingMachineEdge
+class FNbrArcMatchMaMaEdge
 {
 public:
     int Source;
@@ -45,7 +45,7 @@ public:
     void* EdgeAttribute;
     int Id;
 
-    FMatchingMachineEdge(int _source, int _target, void* _attr, int _id)
+    FNbrArcMatchMaMaEdge(int _source, int _target, void* _attr, int _id)
     {
         Source = _source;
         Target = _target;
@@ -53,7 +53,7 @@ public:
         Id = _id;
     }
 
-    FMatchingMachineEdge()
+    FNbrArcMatchMaMaEdge()
     {
         Source = -1;
         Target = -1;
@@ -64,7 +64,7 @@ public:
 
 enum EParentType { PARENTTYPE_IN, PARENTTYPE_OUT, PARENTTYPE_NULL };
 
-class FRiMatchingMachine
+class FNbrArcMatchMatchingMachine
 {
 public:
     int NumOfQueryVertex;
@@ -73,7 +73,7 @@ public:
     int* EdgeSizes; // indexed by state_id
     int* OutEdgeSizes; // indexed by state_id
     int* InEdgeSizes; // indexed by state_id
-    FMatchingMachineEdge** Edges; // indexed by state_id, map on states  (0,1) = (state0, state1)
+    FNbrArcMatchMaMaEdge** Edges; // indexed by state_id, map on states  (0,1) = (state0, state1)
 
     int* QueryVertexToState; // indexed by node_id
     int* StateToQueryVertex; // indexed by state_id
@@ -83,7 +83,7 @@ public:
 
     int nof_leafs;
 
-    FRiMatchingMachine(FRiGraph& query)
+    FNbrArcMatchMatchingMachine(FNbrArcMatchGraph& query)
     {
 #ifdef MDEBUG
         std::cout << "mama constructor (" << query.NumOfVertex << ")...\n";
@@ -93,7 +93,7 @@ public:
         EdgeSizes = (int*)calloc(NumOfQueryVertex, sizeof(int));
         OutEdgeSizes = (int*)calloc(NumOfQueryVertex, sizeof(int));
         InEdgeSizes = (int*)calloc(NumOfQueryVertex, sizeof(int));
-        Edges = new FMatchingMachineEdge*[NumOfQueryVertex];
+        Edges = new FNbrArcMatchMaMaEdge*[NumOfQueryVertex];
 
         QueryVertexToState = (int*)calloc(NumOfQueryVertex, sizeof(int));
         StateToQueryVertex = (int*)calloc(NumOfQueryVertex, sizeof(int));
@@ -106,7 +106,7 @@ public:
 #endif
     }
 
-    virtual ~FRiMatchingMachine()
+    virtual ~FNbrArcMatchMatchingMachine()
     {
         delete[] NodesAttributes;
         for (int i = 0; i < NumOfQueryVertex; i++)
@@ -123,7 +123,7 @@ public:
         delete[] ParentType;
     }
 
-    void fix_eids(FRiGraph& query)
+    void fix_eids(FNbrArcMatchGraph& query)
     {
         int source, target, eid;
         for (int si = 0; si < NumOfQueryVertex; si++)
@@ -194,7 +194,7 @@ public:
     }
 
 public:
-    virtual void Build(FRiGraph& ssg) = 0;
+    virtual void Build(FNbrArcMatchGraph& ssg) = 0;
 };
 } // namespace rilib
 

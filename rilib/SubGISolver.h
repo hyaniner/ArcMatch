@@ -36,12 +36,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace rilib
 {
-class FAmSubGISolver : public FAmSolver
+class FAmSubGISolver : public FNbrArcMatchSolver
 {
 public:
-    FAmSubGISolver(FRiMatchingMachine& _mama, FRiGraph& _rgraph, FRiGraph& _qgraph, FAmAttributeComparator& _nodeComparator, FAmAttributeComparator& _edgeComparator, FRiMatchListener& _matchListener, FAmsbitset* _domains, int* _domains_size
-                   , FAmEdgeDomains& _edomains)
-        : FAmSolver(_mama, _rgraph, _qgraph, _nodeComparator, _edgeComparator, _matchListener, _domains, _domains_size, _edomains)
+    FAmSubGISolver(FNbrArcMatchMatchingMachine& _mama, FNbrArcMatchGraph& _rgraph, FNbrArcMatchGraph& _qgraph, FNbrArcMatchVertexComparator& _nodeComparator, FNbrArcMatchVertexComparator& _edgeComparator, FNbrArcMatchListener& _matchListener, FArcMatchSBitSet* _domains, int* _domains_size
+                   , FNbrArcMatchEdgeDomains& _edomains)
+        : FNbrArcMatchSolver(_mama, _rgraph, _qgraph, _nodeComparator, _edgeComparator, _matchListener, _domains, _domains_size, _edomains)
     {
     }
 

@@ -43,19 +43,19 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace rilib
 {
-class FAmMaMaConstrFirstNSCC : public FRiMatchingMachine
+class FAmMaMaConstrFirstNSCC : public FNbrArcMatchMatchingMachine
 {
     enum NodeFlag { NS_CORE, NS_CNEIGH, NS_UNV };
 
-    FAmsbitset* domains;
+    FArcMatchSBitSet* domains;
     int* domains_size;
 
-    FAmAttributeComparator& nodeComparator;
-    FAmAttributeComparator& edgeComparator;
+    FNbrArcMatchVertexComparator& nodeComparator;
+    FNbrArcMatchVertexComparator& edgeComparator;
 
 public:
-    FAmMaMaConstrFirstNSCC(FRiGraph& query, FAmsbitset* _domains, int* _domains_size, FAmAttributeComparator& _nodeComparator, FAmAttributeComparator& _edgeComparator)
-        : FRiMatchingMachine(query)
+    FAmMaMaConstrFirstNSCC(FNbrArcMatchGraph& query, FArcMatchSBitSet* _domains, int* _domains_size, FNbrArcMatchVertexComparator& _nodeComparator, FNbrArcMatchVertexComparator& _edgeComparator)
+        : FNbrArcMatchMatchingMachine(query)
         , domains(_domains)
         , domains_size(_domains_size)
         , nodeComparator(_nodeComparator)
@@ -63,7 +63,7 @@ public:
     {
     }
 
-    void Build(FRiGraph& ssg) override
+    void Build(FNbrArcMatchGraph& ssg) override
     {
         auto node_flags = new NodeFlag[NumOfQueryVertex]; // indexed by node_id
         for (int i = 0; i < NumOfQueryVertex; i++)
@@ -230,7 +230,7 @@ public:
             OutEdgeSizes[si] = o_e_count;
             InEdgeSizes[si] = i_e_count;
 
-            Edges[si] = new FMatchingMachineEdge[e_count];
+            Edges[si] = new FNbrArcMatchMaMaEdge[e_count];
 
             if (e_count > 0)
             {
@@ -260,7 +260,7 @@ public:
     }
 
 private:
-    void push_node_to_core(int nid, int si, NodeFlag* node_flags, FRiGraph& qg, int* map_state_to_node, int* map_node_to_state)
+    void push_node_to_core(int nid, int si, NodeFlag* node_flags, FNbrArcMatchGraph& qg, int* map_state_to_node, int* map_node_to_state)
     {
         node_flags[nid] = NS_CORE;
 
@@ -282,7 +282,7 @@ private:
         map_node_to_state[nid] = si;
     }
 
-    void get_scores(int nid, int* scores, NodeFlag* node_flags, FRiGraph& qg)
+    void get_scores(int nid, int* scores, NodeFlag* node_flags, FNbrArcMatchGraph& qg)
     {
         std::set<int> all;
 
@@ -348,7 +348,7 @@ private:
         return n2 - n1;
     }
 
-    bool are_core_compatible(int nid1, int nid2, NodeFlag* node_flags, FRiGraph& qg)
+    bool are_core_compatible(int nid1, int nid2, NodeFlag* node_flags, FNbrArcMatchGraph& qg)
     {
         if (nodeComparator.compare(qg.VertexAttributes[nid1], qg.VertexAttributes[nid2]))
         {

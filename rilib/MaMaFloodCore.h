@@ -44,16 +44,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace rilib
 {
-class FAmMaMaFloodCore : public FRiMatchingMachine
+class FAmMaMaFloodCore : public FNbrArcMatchMatchingMachine
 {
-    FAmsbitset* node_domains;
+    FArcMatchSBitSet* node_domains;
     int* node_domains_size;
-    FAmEdgeDomains& edge_domains;
+    FNbrArcMatchEdgeDomains& edge_domains;
     int max_depth;
 
 public:
-    FAmMaMaFloodCore(FRiGraph& query, FAmsbitset* _node_domains, int* _node_domains_size, FAmEdgeDomains& _edomains, int _max_depth)
-        : FRiMatchingMachine(query)
+    FAmMaMaFloodCore(FNbrArcMatchGraph& query, FArcMatchSBitSet* _node_domains, int* _node_domains_size, FNbrArcMatchEdgeDomains& _edomains, int _max_depth)
+        : FNbrArcMatchMatchingMachine(query)
         , node_domains(_node_domains)
         , node_domains_size(_node_domains_size)
         , edge_domains(_edomains)
@@ -63,7 +63,7 @@ public:
 
     enum NodeFlag { NS_CORE, NS_CNEIGH, NS_UNV };
 
-    void flood_centrality(FRiGraph& query, int nfs, int inode, double* centrality, double* ccentrality, int* depth, double** o_query_e_weights, double** i_query_e_weights, NodeFlag* node_flags, int max_depth)
+    void flood_centrality(FNbrArcMatchGraph& query, int nfs, int inode, double* centrality, double* ccentrality, int* depth, double** o_query_e_weights, double** i_query_e_weights, NodeFlag* node_flags, int max_depth)
     {
 
         int* queue = new int[nfs];
@@ -212,7 +212,7 @@ public:
         node_flags[inode] = NS_CNEIGH;
     }
 
-    void update_score(int nfs, int inode, FRiGraph& query, double** scores, double* centrality, double* ccentrality, int* depth)
+    void update_score(int nfs, int inode, FNbrArcMatchGraph& query, double** scores, double* centrality, double* ccentrality, int* depth)
     {
         for (int i = 0; i < 5; i++)
         {
@@ -254,7 +254,7 @@ public:
         return ret;
     }
 
-    virtual void Build(FRiGraph& query)
+    virtual void Build(FNbrArcMatchGraph& query)
     {
         const int nfs = query.NumOfVertex;
 
@@ -494,7 +494,7 @@ public:
 
         ParentType[0] = PARENTTYPE_NULL;
         EdgeSizes[0] = OutEdgeSizes[0] = InEdgeSizes[0] = 0;
-        Edges[0] = new FMatchingMachineEdge[0];
+        Edges[0] = new FNbrArcMatchMaMaEdge[0];
 
 #ifdef MDEBUG
         std::cout << "ORDERING\n";
@@ -589,7 +589,7 @@ public:
             OutEdgeSizes[si] = o_e_count;
             InEdgeSizes[si] = i_e_count;
 
-            Edges[si] = new FMatchingMachineEdge[e_count];
+            Edges[si] = new FNbrArcMatchMaMaEdge[e_count];
 
             if (e_count > 0)
             {

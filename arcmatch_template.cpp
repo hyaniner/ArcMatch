@@ -249,8 +249,8 @@ int match(
 
     int rret;
 
-    FAmAttributeComparator* nodeComparator; //to compare node labels
-    FAmAttributeComparator* edgeComparator; //to compare edges labels
+    FNbrArcMatchVertexComparator* nodeComparator; //to compare node labels
+    FNbrArcMatchVertexComparator* edgeComparator; //to compare edges labels
     switch (filetype)
     {
         case GFT_GFU:
@@ -283,7 +283,7 @@ int match(
 
     //read the query
     //load_s_q=start_time();
-    FRiGraph* query = new FRiGraph();
+    FNbrArcMatchGraph* query = new FNbrArcMatchGraph();
     rret = read_graph(queryfile.c_str(), query, filetype);
     //load_t_q+=end_time(load_s_q);
     if (rret != 0)
@@ -305,10 +305,10 @@ int match(
     {
 #ifdef PRINT_MATCHES
         //if you want to print found matches on screen
-        FRiMatchListener* matchListener = new FAmConsoleMatchListener();
+        FNbrArcMatchListener* matchListener = new FAmConsoleMatchListener();
 #else
         //do not print matches
-        FRiMatchListener* matchListener = new FAmEmptyMatchListener();
+        FNbrArcMatchListener* matchListener = new FAmEmptyMatchListener();
 #endif
 
         int i = 0;
@@ -317,7 +317,7 @@ int match(
         {
             //for each reference graph in the file
             //load_s=start_time();
-            FRiGraph* rrg = new FRiGraph();
+            FNbrArcMatchGraph* rrg = new FNbrArcMatchGraph();
             //read the graph
 #ifdef MDEBUG
             std::cout << "reading reference...\n";
@@ -336,7 +336,7 @@ int match(
                 {
 
                     //initialize domains
-                    FAmsbitset* domains = new FAmsbitset[query->NumOfVertex];
+                    FArcMatchSBitSet* domains = new FArcMatchSBitSet[query->NumOfVertex];
                     //match_s=start_time();
 
                     std::cout << "initializing domain...\n";
@@ -356,7 +356,7 @@ int match(
 
                         //match_s=start_time();
 
-                        FAmEdgeDomains edomains;
+                        FNbrArcMatchEdgeDomains edomains;
                         std::cout << "edomain init\n";
 
                         //s_tmp = start_time();
@@ -397,7 +397,7 @@ int match(
                         for (int ii = 0; ii < query->NumOfVertex; ii++)
                         {
                             dsize = 0;
-                            for (FAmsbitset::iterator IT = domains[ii].first_ones(); IT != domains[ii].end(); IT.next_ones())
+                            for (FArcMatchSBitSet::iterator IT = domains[ii].first_ones(); IT != domains[ii].end(); IT.next_ones())
                             {
                                 dsize++;
                             }
@@ -419,31 +419,31 @@ int match(
 
                         //MatchingMachine* mama = new MaMaConstrFirstDs(*query, domains, domains_size);
 #ifdef MAMA_1
-                        FRiMatchingMachine* mama = new FAmMaMaConstrFirstDs(*query, domains, domains_size);
+                        FNbrArcMatchMatchingMachine* mama = new FAmMaMaConstrFirstDs(*query, domains, domains_size);
 #endif
 
 #ifdef MAMA_0
-                        FRiMatchingMachine* mama = new FAmMaMaConstrFirstEDs(*query, domains, domains_size, edomains);
+                        FNbrArcMatchMatchingMachine* mama = new FAmMaMaConstrFirstEDs(*query, domains, domains_size, edomains);
 #endif
 
 #ifdef MAMA_FC
-                        FRiMatchingMachine* mama = new FAmMaMaFloodCore(*query, domains, domains_size, edomains, query->NumOfVertex);
+                        FNbrArcMatchMatchingMachine* mama = new FAmMaMaFloodCore(*query, domains, domains_size, edomains, query->NumOfVertex);
 #endif
 
 #ifdef MAMA_AC
-                        FRiMatchingMachine* mama = new FAmMaMaAngularCoefficient(*query, domains, domains_size, edomains);
+                        FNbrArcMatchMatchingMachine* mama = new FAmMaMaAngularCoefficient(*query, domains, domains_size, edomains);
 #endif
 
 #ifdef MAMA_NS
-                        FRiMatchingMachine* mama = new FAmMaMaConstrFirstNodeSets(*query, domains, domains_size);
+                        FNbrArcMatchMatchingMachine* mama = new FAmMaMaConstrFirstNodeSets(*query, domains, domains_size);
 #endif
 
 #ifdef MAMA_NSL
-                        FRiMatchingMachine* mama = new FAmMaMaConstrFirstNodeSetsLeafs(*query, domains, domains_size);
+                        FNbrArcMatchMatchingMachine* mama = new FAmMaMaConstrFirstNodeSetsLeafs(*query, domains, domains_size);
 #endif
 
 #ifdef MAMA_CC
-                        FRiMatchingMachine* mama = new FAmMaMaConstrFirstNSCC(*query, domains, domains_size, *nodeComparator, *edgeComparator);
+                        FNbrArcMatchMatchingMachine* mama = new FAmMaMaConstrFirstNSCC(*query, domains, domains_size, *nodeComparator, *edgeComparator);
 #endif
 
 
@@ -486,7 +486,7 @@ int match(
                         std::cout << "solving...\n";
 #endif
                         //prepare the matching phase
-                        FAmSolver* solver;
+                        FNbrArcMatchSolver* solver;
                         switch (matchtype)
                         {
                             case MT_MONO:

@@ -40,17 +40,17 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace rilib
 {
-class FAmAttributeComparator
+class FNbrArcMatchVertexComparator
 {
 public:
-    virtual ~FAmAttributeComparator()
+    virtual ~FNbrArcMatchVertexComparator()
     {
     };
     virtual bool compare(void* attr1, void* attr2) = 0;
     virtual int compareint(void* attr1, void* attr2) = 0;
 };
 
-class FAmDefaultAttrComparator : public FAmAttributeComparator
+class FAmDefaultAttrComparator : public FNbrArcMatchVertexComparator
 {
 public:
     FAmDefaultAttrComparator()
@@ -68,7 +68,7 @@ public:
     };
 };
 
-class FAmStringAttrComparator : public FAmAttributeComparator
+class FAmStringAttrComparator : public FNbrArcMatchVertexComparator
 {
 public:
     FAmStringAttrComparator()
@@ -90,7 +90,7 @@ public:
     };
 };
 
-class FAmIntAttrComparator : public FAmAttributeComparator
+class FAmIntAttrComparator : public FNbrArcMatchVertexComparator
 {
 public:
     FAmIntAttrComparator()

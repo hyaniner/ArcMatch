@@ -44,18 +44,18 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace rilib
 {
-class FAmSolver
+class FNbrArcMatchSolver
 {
 public:
-    FRiMatchingMachine& mama;
-    FRiGraph& rgraph;
-    FRiGraph& qgraph;
-    FAmAttributeComparator& nodeComparator;
-    FAmAttributeComparator& edgeComparator;
-    FRiMatchListener& matchListener;
-    FAmsbitset* domains;
+    FNbrArcMatchMatchingMachine& mama;
+    FNbrArcMatchGraph& rgraph;
+    FNbrArcMatchGraph& qgraph;
+    FNbrArcMatchVertexComparator& nodeComparator;
+    FNbrArcMatchVertexComparator& edgeComparator;
+    FNbrArcMatchListener& matchListener;
+    FArcMatchSBitSet* domains;
     int* domains_size;
-    FAmEdgeDomains& edomains;
+    FNbrArcMatchEdgeDomains& edomains;
 
     long steps;
     long triedcouples;
@@ -64,8 +64,8 @@ public:
     long matchcount;
 
 public:
-    FAmSolver(FRiMatchingMachine& _mama, FRiGraph& _rgraph, FRiGraph& _qgraph, FAmAttributeComparator& _nodeComparator, FAmAttributeComparator& _edgeComparator, FRiMatchListener& _matchListener, FAmsbitset* _domains, int* _domains_size
-           , FAmEdgeDomains& _edomains)
+    FNbrArcMatchSolver(FNbrArcMatchMatchingMachine& _mama, FNbrArcMatchGraph& _rgraph, FNbrArcMatchGraph& _qgraph, FNbrArcMatchVertexComparator& _nodeComparator, FNbrArcMatchVertexComparator& _edgeComparator, FNbrArcMatchListener& _matchListener, FArcMatchSBitSet* _domains, int* _domains_size
+           , FNbrArcMatchEdgeDomains& _edomains)
         : mama(_mama)
         , rgraph(_rgraph)
         , qgraph(_qgraph)
@@ -83,10 +83,11 @@ public:
         matchcount = 0;
     }
 
-    virtual ~FAmSolver()
+    virtual ~FNbrArcMatchSolver()
     {
     }
 
+    //SOLVER_0
     void solve()
     {
 
@@ -95,7 +96,7 @@ public:
         int nof_sn = mama.NumOfQueryVertex;
         void** nodes_attrs = mama.NodesAttributes; // indexed by state_id
         int* edges_sizes = mama.EdgeSizes; // indexed by state_id
-        FMatchingMachineEdge** edges = mama.Edges; // indexed by state_id
+        FNbrArcMatchMaMaEdge** edges = mama.Edges; // indexed by state_id
         int* map_node_to_state = mama.QueryVertexToState; // indexed by node_id
         int* map_state_to_node = mama.StateToQueryVertex; // indexed by state_id
         int* parent_state = mama.ParentState; // indexed by state_id
@@ -119,7 +120,7 @@ public:
                 candidates[i] = new int[domains_size[n]];
 
                 int k = 0;
-                for (FAmsbitset::iterator IT = domains[n].first_ones(); IT != domains[n].end(); IT.next_ones())
+                for (FArcMatchSBitSet::iterator IT = domains[n].first_ones(); IT != domains[n].end(); IT.next_ones())
                 {
                     candidates[i][k] = IT.first;
                     k++;
@@ -228,6 +229,7 @@ public:
         }
     }
 
+    //SOLVER_ED
     void SolveEd()
     {
 
@@ -264,7 +266,7 @@ public:
                 candidates_parents[i] = new int[domains_size[n]];
 
                 int k = 0;
-                for (FAmsbitset::iterator IT = domains[n].first_ones(); IT != domains[n].end(); IT.next_ones())
+                for (FArcMatchSBitSet::iterator IT = domains[n].first_ones(); IT != domains[n].end(); IT.next_ones())
                 {
                     candidates[i][k] = IT.first;
                     candidates_parents[i][k] = -1;
@@ -310,9 +312,9 @@ public:
                 candidatesIT[i] = -1;
                 candidates[i] = new int[candidatesSize[i]];
                 candidates_parents[i] = new int[candidatesSize[i]];
-                unordered_edge_set* eset = &(edomains.domains[eid]);
+                FNbrUnorderedEdgeSet* eset = &(edomains.domains[eid]);
                 int j = 0;
-                for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end(); eit++)
+                for (FNbrUnorderedEdgeSet::iterator eit = eset->begin(); eit != eset->end(); eit++)
                 {
 #ifdef MDEBUG
                     std::cout << "E: " << eit->first << " -> " << eit->second << "\n";
@@ -431,6 +433,7 @@ public:
         }
     };
 
+    //SOLVER_DP
     void solve_rp()
     {
 
@@ -458,7 +461,7 @@ public:
 
         for (int eid = 0; eid < edomains.nof_pattern_edges; eid++)
         {
-            unordered_edge_set* eset = &(edomains.domains[eid]);
+            FNbrUnorderedEdgeSet* eset = &(edomains.domains[eid]);
             ordered_edge_domains[eid] = new int[eset->size() * 2];
             ordered_edge_domains_sizes[eid] = eset->size();
         }
@@ -470,8 +473,8 @@ public:
                 {
                     int eid = mama.Edges[i][j].Id;
                     ordered_edge_set tset;
-                    unordered_edge_set* eset = &(edomains.domains[eid]);
-                    for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end(); eit++)
+                    FNbrUnorderedEdgeSet* eset = &(edomains.domains[eid]);
+                    for (FNbrUnorderedEdgeSet::iterator eit = eset->begin(); eit != eset->end(); eit++)
                     {
                         tset.insert(std::pair<int, int>(eit->second, eit->first));
 
@@ -496,8 +499,8 @@ public:
                 {
                     int eid = mama.Edges[i][j].Id;
                     ordered_edge_set tset;
-                    unordered_edge_set* eset = &(edomains.domains[eid]);
-                    for (unordered_edge_set::iterator eit = eset->begin(); eit != eset->end(); eit++)
+                    FNbrUnorderedEdgeSet* eset = &(edomains.domains[eid]);
+                    for (FNbrUnorderedEdgeSet::iterator eit = eset->begin(); eit != eset->end(); eit++)
                     {
                         tset.insert(std::pair<int, int>(eit->first, eit->second));
 
@@ -530,7 +533,7 @@ public:
                 int n = map_state_to_node[si];
                 f_domains[si] = new int[domains_size[n]];
                 int k = 0;
-                for (FAmsbitset::iterator IT = domains[n].first_ones(); IT != domains[n].end(); IT.next_ones())
+                for (FArcMatchSBitSet::iterator IT = domains[n].first_ones(); IT != domains[n].end(); IT.next_ones())
                 {
                     f_domains[si][k] = IT.first;
                     k++;
@@ -793,6 +796,14 @@ public:
         }
     };
 
+
+
+
+    
+/////////////////////////////////////////////////////////////////
+////LEAF/////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+    
     void SolveLeafs()
     {
 
@@ -818,7 +829,7 @@ public:
 
         for (int eid = 0; eid < edomains.nof_pattern_edges; eid++)
         {
-            unordered_edge_set* eset = &(edomains.domains[eid]);
+            FNbrUnorderedEdgeSet* eset = &(edomains.domains[eid]);
             ordered_edge_domains[eid] = new int[eset->size() * 2];
             ordered_edge_domains_sizes[eid] = eset->size();
         }
@@ -831,7 +842,7 @@ public:
                 {
                     int eid = mama.Edges[i][j].Id;
                     ordered_edge_set tset;
-                    unordered_edge_set* eset = &(edomains.domains[eid]);
+                    FNbrUnorderedEdgeSet* eset = &(edomains.domains[eid]);
                     for (auto eit = eset->begin(); eit != eset->end(); eit++)
                     {
                         tset.insert(std::pair<int, int>(eit->second, eit->first));
@@ -857,7 +868,7 @@ public:
                 {
                     int eid = mama.Edges[i][j].Id;
                     ordered_edge_set tset;
-                    unordered_edge_set* eset = &(edomains.domains[eid]);
+                    FNbrUnorderedEdgeSet* eset = &(edomains.domains[eid]);
                     for (auto eit = eset->begin(); eit != eset->end(); eit++)
                     {
                         tset.insert(std::pair<int, int>(eit->first, eit->second));
@@ -891,7 +902,7 @@ public:
                 int n = map_state_to_node[si];
                 f_domains[si] = new int[domains_size[n]];
                 int k = 0;
-                for (FAmsbitset::iterator IT = domains[n].first_ones(); IT != domains[n].end(); IT.next_ones())
+                for (FArcMatchSBitSet::iterator IT = domains[n].first_ones(); IT != domains[n].end(); IT.next_ones())
                 {
                     f_domains[si][k] = IT.first;
                     k++;

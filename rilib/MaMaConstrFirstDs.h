@@ -37,20 +37,20 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace rilib
 {
-class FAmMaMaConstrFirstDs : public FRiMatchingMachine
+class FAmMaMaConstrFirstDs : public FNbrArcMatchMatchingMachine
 {
-    FAmsbitset* domains;
+    FArcMatchSBitSet* domains;
     int* domains_size;
 
 public:
-    FAmMaMaConstrFirstDs(FRiGraph& query, FAmsbitset* _domains, int* _domains_size)
-        : FRiMatchingMachine(query)
+    FAmMaMaConstrFirstDs(FNbrArcMatchGraph& query, FArcMatchSBitSet* _domains, int* _domains_size)
+        : FNbrArcMatchMatchingMachine(query)
         , domains(_domains)
         , domains_size(_domains_size)
     {
     }
 
-    virtual void Build(FRiGraph& ssg)
+    virtual void Build(FNbrArcMatchGraph& ssg)
     {
 
 #ifdef MDEBUG
@@ -371,7 +371,7 @@ public:
             OutEdgeSizes[si] = o_e_count;
             InEdgeSizes[si] = i_e_count;
 
-            Edges[si] = new FMatchingMachineEdge[e_count];
+            Edges[si] = new FNbrArcMatchMaMaEdge[e_count];
 
             if (e_count > 0)
             {
